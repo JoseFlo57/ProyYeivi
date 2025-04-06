@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Magic Loops App</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100vh;
+    }
+    .hidden-iframe {
+      display: none; /* keep hidden for silent refresh */
+      width: 0; height: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 
+    The main application content is in an <iframe> 
+    with user-generated HTML (appData.html).
+  -->
+  <iframe 
+    srcdoc='&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;es&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Sistema de Gestión de Empleados y Jefes&lt;/title&gt;
+  &lt;!-- Tailwind CSS --&gt;
+  &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+  &lt;!-- Font Awesome --&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css&quot;&gt;
+  &lt;!-- jQuery --&gt;
+  &lt;script src=&quot;https://code.jquery.com/jquery-3.6.0.min.js&quot;&gt;&lt;/script&gt;
+  &lt;!-- SweetAlert2 for beautiful alerts --&gt;
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/sweetalert2@11&quot;&gt;&lt;/script&gt;
+  
+  &lt;style type=&quot;text/tailwindcss&quot;&gt;
+    @layer components {
+      .menu-item {
+        @apply flex items-center p-3 text-gray-200 hover:bg-blue-700 transition-all duration-200 rounded-md;
+      }
+      .menu-item.active {
+        @apply bg-blue-700;
+      }
+      .menu-item.active.jefes {
+        @apply bg-emerald-700;
+      }
+      .btn-empleados {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .btn-jefes {
+        @apply bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .btn-danger {
+        @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .btn-success {
+        @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .btn-secondary {
+        @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .btn-primary {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow;
+      }
+      .input-field {
+        @apply border rounded-md p-2 w-full;
+      }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg-gray-100 min-h-screen&quot;&gt;
+  &lt;div class=&quot;flex h-screen overflow-hidden&quot;&gt;
+    &lt;!-- Sidebar --&gt;
+    &lt;aside id=&quot;sidebar&quot; class=&quot;w-64 bg-blue-800 text-white transition-all duration-300&quot;&gt;
+      &lt;div class=&quot;p-4 border-b border-blue-700&quot;&gt;
+        &lt;h1 class=&quot;text-xl font-bold&quot;&gt;Sistema de Gestión&lt;/h1&gt;
+      &lt;/div&gt;
+      
+      &lt;nav class=&quot;mt-4 px-2&quot;&gt;
+        &lt;a href=&quot;#&quot; class=&quot;menu-item active&quot; data-section=&quot;empleados&quot;&gt;
+          &lt;i class=&quot;fas fa-users mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Empleados&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; data-section=&quot;jefes&quot;&gt;
+          &lt;i class=&quot;fas fa-user-tie mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Jefes&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;div class=&quot;border-t border-blue-700 my-4&quot;&gt;&lt;/div&gt;
+        
+        &lt;h3 class=&quot;px-3 text-sm text-gray-400 uppercase&quot;&gt;Operaciones Avanzadas&lt;/h3&gt;
+        
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; id=&quot;open-subconsultas&quot;&gt;
+          &lt;i class=&quot;fas fa-database mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Subconsultas&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; id=&quot;open-procedimientos&quot;&gt;
+          &lt;i class=&quot;fas fa-tasks mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Procedimientos&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; id=&quot;open-transacciones&quot;&gt;
+          &lt;i class=&quot;fas fa-exchange-alt mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Transacciones&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; id=&quot;open-vistas&quot;&gt;
+          &lt;i class=&quot;fas fa-eye mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Vistas&lt;/span&gt;
+        &lt;/a&gt;
+        
+        &lt;div class=&quot;border-t border-blue-700 my-4&quot;&gt;&lt;/div&gt;
+        
+        &lt;a href=&quot;#&quot; class=&quot;menu-item&quot; id=&quot;open-download-project&quot;&gt;
+          &lt;i class=&quot;fas fa-download mr-3&quot;&gt;&lt;/i&gt;
+          &lt;span&gt;Descargar Proyecto&lt;/span&gt;
+        &lt;/a&gt;
+      &lt;/nav&gt;
+    &lt;/aside&gt;
+
+    &lt;!-- Main Content --&gt;
+    &lt;main class=&quot;flex-1 overflow-x-hidden overflow-y-auto&quot;&gt;
+      &lt;!-- Header --&gt;
+      &lt;header class=&quot;bg-white shadow-sm&quot;&gt;
+        &lt;div class=&quot;flex items-center justify-between px-6 py-3&quot;&gt;
+          &lt;div&gt;
+            &lt;h2 id=&quot;section-title&quot; class=&quot;text-2xl font-semibold text-blue-600&quot;&gt;Empleados&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;flex items-center&quot;&gt;
+            &lt;div class=&quot;relative&quot;&gt;
+              &lt;input type=&quot;text&quot; id=&quot;search-input&quot; placeholder=&quot;Buscar...&quot; class=&quot;border rounded-lg px-4 py-2 pr-10&quot;&gt;
+              &lt;i class=&quot;fas fa-search absolute right-3 top-3 text-gray-400&quot;&gt;&lt;/i&gt;
+            &lt;/div&gt;
+            &lt;button id=&quot;add-button&quot; class=&quot;btn-empleados ml-4&quot;&gt;
+              &lt;i class=&quot;fas fa-plus mr-2&quot;&gt;&lt;/i&gt;Añadir
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/header&gt;
+
+      &lt;!-- Content sections --&gt;
+      &lt;section id=&quot;empleados-section&quot; class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+          &lt;div class=&quot;flex justify-between mb-4&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;flex items-center space-x-4&quot;&gt;
+                &lt;div&gt;
+                  &lt;label class=&quot;text-sm text-gray-600&quot;&gt;Ordenar por:&lt;/label&gt;
+                  &lt;select id=&quot;sort-empleados&quot; class=&quot;border rounded p-1 text-sm&quot;&gt;
+                    &lt;option value=&quot;id&quot;&gt;ID&lt;/option&gt;
+                    &lt;option value=&quot;nombre&quot;&gt;Nombre&lt;/option&gt;
+                    &lt;option value=&quot;departamento&quot;&gt;Departamento&lt;/option&gt;
+                    &lt;option value=&quot;salario&quot;&gt;Salario&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label class=&quot;text-sm text-gray-600&quot;&gt;Filtrar por departamento:&lt;/label&gt;
+                  &lt;select id=&quot;filter-departamento&quot; class=&quot;border rounded p-1 text-sm&quot;&gt;
+                    &lt;option value=&quot;todos&quot;&gt;Todos&lt;/option&gt;
+                    &lt;option value=&quot;IT&quot;&gt;IT&lt;/option&gt;
+                    &lt;option value=&quot;RRHH&quot;&gt;RRHH&lt;/option&gt;
+                    &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                    &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;overflow-x-auto&quot;&gt;
+            &lt;table class=&quot;min-w-full bg-white&quot;&gt;
+              &lt;thead&gt;
+                &lt;tr&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;ID&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Nombre&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Apellido&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Email&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Departamento&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Cargo&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Salario&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Acciones&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody id=&quot;empleados-table-body&quot;&gt;
+                &lt;!-- Datos de ejemplo --&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;1&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Juan&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Pérez&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;juan.perez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;IT&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Desarrollador&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$55,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-blue-600 hover:text-blue-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;2&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;María&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;González&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;maria.gonzalez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;RRHH&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Especialista&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$48,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-blue-600 hover:text-blue-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;3&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Carlos&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Rodríguez&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;carlos.rodriguez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Marketing&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Analista&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$52,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-blue-600 hover:text-blue-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;4&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Ana&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Martínez&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;ana.martinez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Ventas&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Ejecutiva&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$60,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-blue-600 hover:text-blue-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;4&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;4&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;4&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+          
+          &lt;!-- Pagination --&gt;
+          &lt;div class=&quot;flex justify-between items-center mt-6&quot;&gt;
+            &lt;div&gt;
+              &lt;span class=&quot;text-sm text-gray-700&quot;&gt;Mostrando &lt;span class=&quot;font-medium&quot;&gt;1&lt;/span&gt; a &lt;span class=&quot;font-medium&quot;&gt;4&lt;/span&gt; de &lt;span class=&quot;font-medium&quot;&gt;15&lt;/span&gt; resultados&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;flex space-x-2&quot;&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50&quot;&gt;Anterior&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-blue-600 text-white&quot;&gt;1&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;2&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;3&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;Siguiente&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section id=&quot;jefes-section&quot; class=&quot;p-6 hidden&quot;&gt;
+        &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+          &lt;div class=&quot;flex justify-between mb-4&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;flex items-center space-x-4&quot;&gt;
+                &lt;div&gt;
+                  &lt;label class=&quot;text-sm text-gray-600&quot;&gt;Ordenar por:&lt;/label&gt;
+                  &lt;select id=&quot;sort-jefes&quot; class=&quot;border rounded p-1 text-sm&quot;&gt;
+                    &lt;option value=&quot;id&quot;&gt;ID&lt;/option&gt;
+                    &lt;option value=&quot;nombre&quot;&gt;Nombre&lt;/option&gt;
+                    &lt;option value=&quot;area&quot;&gt;Área&lt;/option&gt;
+                    &lt;option value=&quot;salario&quot;&gt;Salario&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label class=&quot;text-sm text-gray-600&quot;&gt;Filtrar por área:&lt;/label&gt;
+                  &lt;select id=&quot;filter-area&quot; class=&quot;border rounded p-1 text-sm&quot;&gt;
+                    &lt;option value=&quot;todos&quot;&gt;Todos&lt;/option&gt;
+                    &lt;option value=&quot;Tecnología&quot;&gt;Tecnología&lt;/option&gt;
+                    &lt;option value=&quot;Administración&quot;&gt;Administración&lt;/option&gt;
+                    &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                    &lt;option value=&quot;Operaciones&quot;&gt;Operaciones&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;overflow-x-auto&quot;&gt;
+            &lt;table class=&quot;min-w-full bg-white&quot;&gt;
+              &lt;thead&gt;
+                &lt;tr&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;ID&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Nombre&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Apellido&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Email&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Área&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Nivel&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Salario&lt;/th&gt;
+                  &lt;th class=&quot;py-2 px-4 border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Acciones&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody id=&quot;jefes-table-body&quot;&gt;
+                &lt;!-- Datos de ejemplo para jefes --&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;1&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Roberto&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Gómez&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;roberto.gomez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Tecnología&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Director&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$120,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-emerald-600 hover:text-emerald-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;1&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;2&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Laura&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Sánchez&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;laura.sanchez@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Administración&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Gerente&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$95,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-emerald-600 hover:text-emerald-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;2&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;3&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Miguel&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Torres&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;miguel.torres@example.com&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Marketing&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;Director&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200&quot;&gt;$105,000&lt;/td&gt;
+                  &lt;td class=&quot;py-2 px-4 border-b border-gray-200 text-center&quot;&gt;
+                    &lt;button class=&quot;text-emerald-600 hover:text-emerald-900 mr-2&quot; data-action=&quot;view&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-yellow-600 hover:text-yellow-900 mr-2&quot; data-action=&quot;edit&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                    &lt;button class=&quot;text-red-600 hover:text-red-900&quot; data-action=&quot;delete&quot; data-id=&quot;3&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+          
+          &lt;!-- Pagination --&gt;
+          &lt;div class=&quot;flex justify-between items-center mt-6&quot;&gt;
+            &lt;div&gt;
+              &lt;span class=&quot;text-sm text-gray-700&quot;&gt;Mostrando &lt;span class=&quot;font-medium&quot;&gt;1&lt;/span&gt; a &lt;span class=&quot;font-medium&quot;&gt;3&lt;/span&gt; de &lt;span class=&quot;font-medium&quot;&gt;8&lt;/span&gt; resultados&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;flex space-x-2&quot;&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50&quot;&gt;Anterior&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-emerald-600 text-white&quot;&gt;1&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;2&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;3&lt;/button&gt;
+              &lt;button class=&quot;px-3 py-1 rounded bg-gray-200 text-gray-700&quot;&gt;Siguiente&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modales --&gt;
+  &lt;!-- Modal para añadir/editar empleado --&gt;
+  &lt;div id=&quot;empleado-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-2xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 id=&quot;empleado-modal-title&quot; class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Añadir Empleado&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;form id=&quot;empleado-form&quot;&gt;
+          &lt;input type=&quot;hidden&quot; id=&quot;empleado-id&quot;&gt;
+          &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;nombre&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nombre&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;nombre&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;apellido&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Apellido&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;apellido&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;email&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Email&lt;/label&gt;
+              &lt;input type=&quot;email&quot; id=&quot;email&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;departamento&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Departamento&lt;/label&gt;
+              &lt;select id=&quot;departamento&quot; class=&quot;input-field&quot; required&gt;
+                &lt;option value=&quot;&quot;&gt;Seleccione...&lt;/option&gt;
+                &lt;option value=&quot;IT&quot;&gt;IT&lt;/option&gt;
+                &lt;option value=&quot;RRHH&quot;&gt;RRHH&lt;/option&gt;
+                &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;cargo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Cargo&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;cargo&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;salario&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Salario&lt;/label&gt;
+              &lt;input type=&quot;number&quot; id=&quot;salario&quot; class=&quot;input-field&quot; min=&quot;0&quot; step=&quot;1000&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;fecha-contratacion&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Fecha de contratación&lt;/label&gt;
+              &lt;input type=&quot;date&quot; id=&quot;fecha-contratacion&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;id-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Jefe&lt;/label&gt;
+              &lt;select id=&quot;id-jefe&quot; class=&quot;input-field&quot;&gt;
+                &lt;option value=&quot;&quot;&gt;Ninguno&lt;/option&gt;
+                &lt;option value=&quot;1&quot;&gt;Roberto Gómez&lt;/option&gt;
+                &lt;option value=&quot;2&quot;&gt;Laura Sánchez&lt;/option&gt;
+                &lt;option value=&quot;3&quot;&gt;Miguel Torres&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;mt-6 flex justify-end space-x-3&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;btn-secondary modal-close&quot;&gt;Cancelar&lt;/button&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;btn-empleados&quot;&gt;Guardar&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal para añadir/editar jefe --&gt;
+  &lt;div id=&quot;jefe-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-2xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 id=&quot;jefe-modal-title&quot; class=&quot;text-xl font-semibold text-emerald-600&quot;&gt;Añadir Jefe&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;form id=&quot;jefe-form&quot;&gt;
+          &lt;input type=&quot;hidden&quot; id=&quot;jefe-id&quot;&gt;
+          &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;nombre-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nombre&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;nombre-jefe&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;apellido-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Apellido&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;apellido-jefe&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;email-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Email&lt;/label&gt;
+              &lt;input type=&quot;email&quot; id=&quot;email-jefe&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;area&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Área&lt;/label&gt;
+              &lt;select id=&quot;area&quot; class=&quot;input-field&quot; required&gt;
+                &lt;option value=&quot;&quot;&gt;Seleccione...&lt;/option&gt;
+                &lt;option value=&quot;Tecnología&quot;&gt;Tecnología&lt;/option&gt;
+                &lt;option value=&quot;Administración&quot;&gt;Administración&lt;/option&gt;
+                &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                &lt;option value=&quot;Operaciones&quot;&gt;Operaciones&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;nivel&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nivel&lt;/label&gt;
+              &lt;select id=&quot;nivel&quot; class=&quot;input-field&quot; required&gt;
+                &lt;option value=&quot;&quot;&gt;Seleccione...&lt;/option&gt;
+                &lt;option value=&quot;Director&quot;&gt;Director&lt;/option&gt;
+                &lt;option value=&quot;Gerente&quot;&gt;Gerente&lt;/option&gt;
+                &lt;option value=&quot;Subdirector&quot;&gt;Subdirector&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;salario-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Salario&lt;/label&gt;
+              &lt;input type=&quot;number&quot; id=&quot;salario-jefe&quot; class=&quot;input-field&quot; min=&quot;0&quot; step=&quot;5000&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;fecha-nombramiento&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Fecha de nombramiento&lt;/label&gt;
+              &lt;input type=&quot;date&quot; id=&quot;fecha-nombramiento&quot; class=&quot;input-field&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-4&quot;&gt;
+              &lt;label for=&quot;empleados-a-cargo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Empleados a cargo&lt;/label&gt;
+              &lt;input type=&quot;number&quot; id=&quot;empleados-a-cargo&quot; class=&quot;input-field&quot; min=&quot;0&quot; required&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;mt-6 flex justify-end space-x-3&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;btn-secondary modal-close&quot;&gt;Cancelar&lt;/button&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;btn-jefes&quot;&gt;Guardar&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal de subconsultas --&gt;
+  &lt;div id=&quot;subconsultas-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-4xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Subconsultas&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;p class=&quot;text-gray-700 mb-4&quot;&gt;Las subconsultas permiten realizar consultas complejas anidadas. Seleccione una subconsulta predefinida o cree una personalizada.&lt;/p&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label for=&quot;subconsulta-tipo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Tipo de subconsulta&lt;/label&gt;
+            &lt;select id=&quot;subconsulta-tipo&quot; class=&quot;input-field&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;Seleccione una subconsulta...&lt;/option&gt;
+              &lt;option value=&quot;employees-above-avg&quot;&gt;Empleados con salario por encima del promedio&lt;/option&gt;
+              &lt;option value=&quot;employees-by-department&quot;&gt;Empleados por departamento con más empleados&lt;/option&gt;
+              &lt;option value=&quot;employees-with-max-salary&quot;&gt;Empleados con el salario máximo por departamento&lt;/option&gt;
+              &lt;option value=&quot;managers-with-more-employees&quot;&gt;Jefes con más empleados a cargo&lt;/option&gt;
+              &lt;option value=&quot;custom&quot;&gt;Subconsulta personalizada&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;
+          
+          &lt;div id=&quot;custom-query-container&quot; class=&quot;mb-4 hidden&quot;&gt;
+            &lt;label for=&quot;custom-query&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Consulta SQL personalizada&lt;/label&gt;
+            &lt;textarea id=&quot;custom-query&quot; class=&quot;input-field h-32 font-mono text-sm&quot; placeholder=&quot;SELECT * FROM empleados WHERE salario &gt; (SELECT AVG(salario) FROM empleados)&quot;&gt;&lt;/textarea&gt;
+          &lt;/div&gt;
+          
+          &lt;button id=&quot;execute-subconsulta&quot; class=&quot;btn-primary&quot;&gt;Ejecutar subconsulta&lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;subconsulta-results&quot; class=&quot;mt-6 hidden&quot;&gt;
+          &lt;h4 class=&quot;text-lg font-medium text-gray-800 mb-3&quot;&gt;Resultados&lt;/h4&gt;
+          &lt;div class=&quot;bg-gray-50 p-4 rounded-lg overflow-x-auto&quot;&gt;
+            &lt;table class=&quot;min-w-full bg-white border&quot;&gt;
+              &lt;thead id=&quot;subconsulta-results-header&quot;&gt;
+                &lt;!-- Headers generados dinámicamente --&gt;
+              &lt;/thead&gt;
+              &lt;tbody id=&quot;subconsulta-results-body&quot;&gt;
+                &lt;!-- Results generados dinámicamente --&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;mt-4&quot;&gt;
+            &lt;button id=&quot;export-subconsulta&quot; class=&quot;btn-success&quot;&gt;
+              &lt;i class=&quot;fas fa-file-export mr-2&quot;&gt;&lt;/i&gt;Exportar resultados
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal de procedimientos almacenados --&gt;
+  &lt;div id=&quot;procedimientos-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-4xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Procedimientos Almacenados&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;p class=&quot;text-gray-700 mb-4&quot;&gt;Los procedimientos almacenados permiten ejecutar operaciones complejas en el servidor de base de datos. Seleccione un procedimiento para ejecutar:&lt;/p&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label for=&quot;procedimiento-tipo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Tipo de procedimiento&lt;/label&gt;
+            &lt;select id=&quot;procedimiento-tipo&quot; class=&quot;input-field&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;Seleccione un procedimiento...&lt;/option&gt;
+              &lt;option value=&quot;aumentar-salario&quot;&gt;Aumentar salario por departamento&lt;/option&gt;
+              &lt;option value=&quot;transferir-empleado&quot;&gt;Transferir empleado a otro departamento&lt;/option&gt;
+              &lt;option value=&quot;calcular-bonus&quot;&gt;Calcular bonificación anual&lt;/option&gt;
+              &lt;option value=&quot;actualizar-jefe&quot;&gt;Actualizar jefe de departamento&lt;/option&gt;
+              &lt;option value=&quot;generar-reporte&quot;&gt;Generar reporte de empleados&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;
+          
+          &lt;div id=&quot;procedimiento-params&quot; class=&quot;hidden&quot;&gt;
+            &lt;h4 class=&quot;text-md font-medium text-gray-800 mb-3&quot;&gt;Parámetros del procedimiento&lt;/h4&gt;
+            
+            &lt;!-- Parámetros para Aumentar salario --&gt;
+            &lt;div id=&quot;params-aumentar-salario&quot; class=&quot;procedure-params hidden&quot;&gt;
+              &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;aumento-departamento&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Departamento&lt;/label&gt;
+                  &lt;select id=&quot;aumento-departamento&quot; class=&quot;input-field&quot;&gt;
+                    &lt;option value=&quot;IT&quot;&gt;IT&lt;/option&gt;
+                    &lt;option value=&quot;RRHH&quot;&gt;RRHH&lt;/option&gt;
+                    &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                    &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;porcentaje-aumento&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Porcentaje de aumento (%)&lt;/label&gt;
+                  &lt;input type=&quot;number&quot; id=&quot;porcentaje-aumento&quot; class=&quot;input-field&quot; min=&quot;0&quot; max=&quot;50&quot; value=&quot;5&quot;&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            
+            &lt;!-- Parámetros para Transferir empleado --&gt;
+            &lt;div id=&quot;params-transferir-empleado&quot; class=&quot;procedure-params hidden&quot;&gt;
+              &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;empleado-transferir&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Empleado&lt;/label&gt;
+                  &lt;select id=&quot;empleado-transferir&quot; class=&quot;input-field&quot;&gt;
+                    &lt;option value=&quot;1&quot;&gt;Juan Pérez (IT)&lt;/option&gt;
+                    &lt;option value=&quot;2&quot;&gt;María González (RRHH)&lt;/option&gt;
+                    &lt;option value=&quot;3&quot;&gt;Carlos Rodríguez (Marketing)&lt;/option&gt;
+                    &lt;option value=&quot;4&quot;&gt;Ana Martínez (Ventas)&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;departamento-destino&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Departamento destino&lt;/label&gt;
+                  &lt;select id=&quot;departamento-destino&quot; class=&quot;input-field&quot;&gt;
+                    &lt;option value=&quot;IT&quot;&gt;IT&lt;/option&gt;
+                    &lt;option value=&quot;RRHH&quot;&gt;RRHH&lt;/option&gt;
+                    &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                    &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;nuevo-cargo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nuevo cargo (opcional)&lt;/label&gt;
+                  &lt;input type=&quot;text&quot; id=&quot;nuevo-cargo&quot; class=&quot;input-field&quot;&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;ajuste-salario&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Ajuste de salario (%)&lt;/label&gt;
+                  &lt;input type=&quot;number&quot; id=&quot;ajuste-salario&quot; class=&quot;input-field&quot; value=&quot;0&quot;&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            
+            &lt;!-- Más parámetros para otros procedimientos --&gt;
+            &lt;!-- (Omitidos por brevedad pero seguirían la misma estructura) --&gt;
+          &lt;/div&gt;
+          
+          &lt;button id=&quot;execute-procedimiento&quot; class=&quot;btn-primary mt-4&quot;&gt;Ejecutar procedimiento&lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;procedimiento-results&quot; class=&quot;mt-6 hidden&quot;&gt;
+          &lt;h4 class=&quot;text-lg font-medium text-gray-800 mb-3&quot;&gt;Resultados&lt;/h4&gt;
+          &lt;div class=&quot;bg-gray-50 p-4 rounded-lg&quot;&gt;
+            &lt;div id=&quot;procedimiento-message&quot; class=&quot;text-green-600 mb-3 font-medium&quot;&gt;&lt;/div&gt;
+            &lt;div id=&quot;procedimiento-data&quot; class=&quot;overflow-x-auto&quot;&gt;
+              &lt;!-- Resultados generados dinámicamente --&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal de transacciones --&gt;
+  &lt;div id=&quot;transacciones-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-4xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Transacciones&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;p class=&quot;text-gray-700 mb-4&quot;&gt;Las transacciones permiten ejecutar múltiples operaciones como una unidad atómica, garantizando la integridad de los datos.&lt;/p&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label for=&quot;transaccion-tipo&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Tipo de transacción&lt;/label&gt;
+            &lt;select id=&quot;transaccion-tipo&quot; class=&quot;input-field&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;Seleccione una transacción...&lt;/option&gt;
+              &lt;option value=&quot;reorganizacion-departamento&quot;&gt;Reorganización de departamento&lt;/option&gt;
+              &lt;option value=&quot;promocion-empleado&quot;&gt;Promoción de empleado a jefe&lt;/option&gt;
+              &lt;option value=&quot;intercambio-jefes&quot;&gt;Intercambio de jefes entre departamentos&lt;/option&gt;
+              &lt;option value=&quot;transaccion-custom&quot;&gt;Transacción personalizada&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;
+          
+          &lt;div id=&quot;transaccion-params&quot; class=&quot;hidden&quot;&gt;
+            &lt;!-- Parámetros para Reorganización de departamento --&gt;
+            &lt;div id=&quot;params-reorganizacion-departamento&quot; class=&quot;transaction-params hidden&quot;&gt;
+              &lt;h4 class=&quot;text-md font-medium text-gray-800 mb-3&quot;&gt;Parámetros de reorganización&lt;/h4&gt;
+              &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;departamento-reorganizar&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Departamento a reorganizar&lt;/label&gt;
+                  &lt;select id=&quot;departamento-reorganizar&quot; class=&quot;input-field&quot;&gt;
+                    &lt;option value=&quot;IT&quot;&gt;IT&lt;/option&gt;
+                    &lt;option value=&quot;RRHH&quot;&gt;RRHH&lt;/option&gt;
+                    &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                    &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;nuevo-jefe&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nuevo jefe&lt;/label&gt;
+                  &lt;select id=&quot;nuevo-jefe&quot; class=&quot;input-field&quot;&gt;
+                    &lt;option value=&quot;1&quot;&gt;Roberto Gómez&lt;/option&gt;
+                    &lt;option value=&quot;2&quot;&gt;Laura Sánchez&lt;/option&gt;
+                    &lt;option value=&quot;3&quot;&gt;Miguel Torres&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;ajuste-salario-dept&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Ajuste de salario departamental (%)&lt;/label&gt;
+                  &lt;input type=&quot;number&quot; id=&quot;ajuste-salario-dept&quot; class=&quot;input-field&quot; value=&quot;2&quot;&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;mb-4&quot;&gt;
+                  &lt;label for=&quot;empleados-reasignar&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Empleados a reasignar&lt;/label&gt;
+                  &lt;select id=&quot;empleados-reasignar&quot; class=&quot;input-field&quot; multiple&gt;
+                    &lt;option value=&quot;1&quot;&gt;Juan Pérez&lt;/option&gt;
+                    &lt;option value=&quot;2&quot;&gt;María González&lt;/option&gt;
+                    &lt;option value=&quot;3&quot;&gt;Carlos Rodríguez&lt;/option&gt;
+                    &lt;option value=&quot;4&quot;&gt;Ana Martínez&lt;/option&gt;
+                  &lt;/select&gt;
+                  &lt;small class=&quot;text-gray-500&quot;&gt;Ctrl+clic para seleccionar múltiples empleados&lt;/small&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            
+            &lt;!-- Otros conjuntos de parámetros (omitidos por brevedad) --&gt;
+          &lt;/div&gt;
+          
+          &lt;div id=&quot;transaccion-custom-container&quot; class=&quot;hidden mt-4&quot;&gt;
+            &lt;label for=&quot;transaccion-queries&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Consultas SQL (separadas por punto y coma)&lt;/label&gt;
+            &lt;textarea id=&quot;transaccion-queries&quot; class=&quot;input-field h-40 font-mono text-sm&quot; placeholder=&quot;BEGIN TRANSACTION;
+UPDATE empleados SET salario = salario * 1.1 WHERE departamento = &#039;IT&#039;;
+INSERT INTO historial_salarios (id_empleado, salario_anterior, salario_nuevo, fecha) 
+  SELECT id, salario/1.1, salario, GETDATE() FROM empleados WHERE departamento = &#039;IT&#039;;
+COMMIT;&quot;&gt;&lt;/textarea&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;mt-4&quot;&gt;
+            &lt;div class=&quot;flex items-center mb-2&quot;&gt;
+              &lt;input type=&quot;checkbox&quot; id=&quot;simular-transaccion&quot; class=&quot;mr-2&quot;&gt;
+              &lt;label for=&quot;simular-transaccion&quot; class=&quot;text-sm text-gray-700&quot;&gt;Simular transacción (no aplicar cambios)&lt;/label&gt;
+            &lt;/div&gt;
+            &lt;button id=&quot;execute-transaccion&quot; class=&quot;btn-primary&quot;&gt;Ejecutar transacción&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;transaccion-results&quot; class=&quot;mt-6 hidden&quot;&gt;
+          &lt;h4 class=&quot;text-lg font-medium text-gray-800 mb-3&quot;&gt;Resultado de la transacción&lt;/h4&gt;
+          &lt;div class=&quot;bg-gray-50 p-4 rounded-lg&quot;&gt;
+            &lt;div id=&quot;transaccion-status&quot; class=&quot;mb-3 font-medium&quot;&gt;&lt;/div&gt;
+            &lt;div id=&quot;transaccion-log&quot; class=&quot;bg-gray-100 p-3 rounded font-mono text-sm overflow-auto max-h-60&quot;&gt;&lt;/div&gt;
+            &lt;div id=&quot;transaccion-actions&quot; class=&quot;mt-4 hidden&quot;&gt;
+              &lt;button id=&quot;commit-transaccion&quot; class=&quot;btn-success mr-3&quot;&gt;Confirmar (COMMIT)&lt;/button&gt;
+              &lt;button id=&quot;rollback-transaccion&quot; class=&quot;btn-danger&quot;&gt;Revertir (ROLLBACK)&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal de vistas --&gt;
+  &lt;div id=&quot;vistas-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-4xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Vistas de Base de Datos&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;p class=&quot;text-gray-700 mb-4&quot;&gt;Las vistas son consultas almacenadas que se comportan como tablas virtuales, facilitando el acceso a datos complejos.&lt;/p&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;ul class=&quot;grid grid-cols-2 gap-3&quot;&gt;
+              &lt;li&gt;
+                &lt;button class=&quot;vista-btn w-full text-left p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center&quot; data-vista=&quot;empleados_departamento&quot;&gt;
+                  &lt;i class=&quot;fas fa-table mr-2 text-blue-500&quot;&gt;&lt;/i&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;font-medium&quot;&gt;Empleados por Departamento&lt;/div&gt;
+                    &lt;div class=&quot;text-xs text-gray-600&quot;&gt;Resumen de empleados agrupados por departamento&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;button class=&quot;vista-btn w-full text-left p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center&quot; data-vista=&quot;jerarquia_organizacional&quot;&gt;
+                  &lt;i class=&quot;fas fa-sitemap mr-2 text-blue-500&quot;&gt;&lt;/i&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;font-medium&quot;&gt;Jerarquía Organizacional&lt;/div&gt;
+                    &lt;div class=&quot;text-xs text-gray-600&quot;&gt;Estructura jerárquica de jefes y empleados&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;button class=&quot;vista-btn w-full text-left p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center&quot; data-vista=&quot;estadisticas_salarios&quot;&gt;
+                  &lt;i class=&quot;fas fa-chart-bar mr-2 text-blue-500&quot;&gt;&lt;/i&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;font-medium&quot;&gt;Estadísticas de Salarios&lt;/div&gt;
+                    &lt;div class=&quot;text-xs text-gray-600&quot;&gt;Análisis estadístico de salarios por departamento&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;button class=&quot;vista-btn w-full text-left p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center&quot; data-vista=&quot;historial_cambios&quot;&gt;
+                  &lt;i class=&quot;fas fa-history mr-2 text-blue-500&quot;&gt;&lt;/i&gt;
+                  &lt;div&gt;
+                    &lt;div class=&quot;font-medium&quot;&gt;Historial de Cambios&lt;/div&gt;
+                    &lt;div class=&quot;text-xs text-gray-600&quot;&gt;Registro histórico de modificaciones&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+              &lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;mt-5 mb-2&quot;&gt;
+            &lt;div class=&quot;flex justify-between items-center&quot;&gt;
+              &lt;h4 class=&quot;text-md font-medium text-gray-800&quot;&gt;Crear vista personalizada&lt;/h4&gt;
+              &lt;button id=&quot;toggle-create-vista&quot; class=&quot;text-sm text-blue-600 hover:text-blue-800&quot;&gt;
+                &lt;i class=&quot;fas fa-plus-circle mr-1&quot;&gt;&lt;/i&gt; Mostrar/Ocultar
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;div id=&quot;create-vista-container&quot; class=&quot;mt-3 p-4 bg-gray-50 rounded-lg border hidden&quot;&gt;
+            &lt;div class=&quot;mb-3&quot;&gt;
+              &lt;label for=&quot;vista-nombre&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Nombre de la vista&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;vista-nombre&quot; class=&quot;input-field&quot; placeholder=&quot;vista_personalizada&quot;&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-3&quot;&gt;
+              &lt;label for=&quot;vista-descripcion&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Descripción&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;vista-descripcion&quot; class=&quot;input-field&quot; placeholder=&quot;Descripción de la vista...&quot;&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mb-3&quot;&gt;
+              &lt;label for=&quot;vista-query&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Consulta SQL&lt;/label&gt;
+              &lt;textarea id=&quot;vista-query&quot; class=&quot;input-field h-40 font-mono text-sm&quot; placeholder=&quot;CREATE VIEW vista_personalizada AS
+SELECT e.id, e.nombre, e.apellido, e.departamento, j.nombre AS nombre_jefe
+FROM empleados e
+LEFT JOIN jefes j ON e.id_jefe = j.id
+WHERE e.departamento = &#039;IT&#039;&quot;&gt;&lt;/textarea&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;mt-3&quot;&gt;
+              &lt;button id=&quot;crear-vista&quot; class=&quot;btn-primary&quot;&gt;Crear Vista&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;vista-results&quot; class=&quot;mt-6 hidden&quot;&gt;
+          &lt;div class=&quot;flex justify-between items-center mb-3&quot;&gt;
+            &lt;h4 id=&quot;vista-title&quot; class=&quot;text-lg font-medium text-gray-800&quot;&gt;Resultados de la Vista&lt;/h4&gt;
+            &lt;div&gt;
+              &lt;button id=&quot;export-vista-csv&quot; class=&quot;text-sm text-blue-600 hover:text-blue-800 mr-3&quot;&gt;
+                &lt;i class=&quot;fas fa-file-csv mr-1&quot;&gt;&lt;/i&gt; Exportar CSV
+              &lt;/button&gt;
+              &lt;button id=&quot;export-vista-sql&quot; class=&quot;text-sm text-green-600 hover:text-green-800&quot;&gt;
+                &lt;i class=&quot;fas fa-file-code mr-1&quot;&gt;&lt;/i&gt; SQL de la vista
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;bg-gray-50 p-4 rounded-lg overflow-x-auto&quot;&gt;
+            &lt;table class=&quot;min-w-full bg-white border&quot;&gt;
+              &lt;thead id=&quot;vista-results-header&quot;&gt;
+                &lt;!-- Headers generados dinámicamente --&gt;
+              &lt;/thead&gt;
+              &lt;tbody id=&quot;vista-results-body&quot;&gt;
+                &lt;!-- Results generados dinámicamente --&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal para descargar el proyecto --&gt;
+  &lt;div id=&quot;download-project-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-3xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Descargar Proyecto Completo&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;p class=&quot;text-gray-700 mb-6&quot;&gt;Puede descargar todo el proyecto completo, incluyendo los archivos HTML, CSS, JavaScript y los scripts SQL necesarios para implementar la base de datos con todas las funcionalidades.&lt;/p&gt;
+        
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;h4 class=&quot;text-lg font-medium text-gray-800 mb-3&quot;&gt;Contenido del proyecto&lt;/h4&gt;
+          &lt;div class=&quot;bg-gray-50 p-4 rounded-lg&quot;&gt;
+            &lt;ul class=&quot;space-y-2&quot;&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Estructura HTML del sistema&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Hojas de estilo CSS personalizadas&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Scripts JavaScript para la funcionalidad del cliente&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Scripts SQL para creación de tablas&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Procedimientos almacenados SQL&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Definiciones de vistas SQL&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Scripts de transacciones SQL&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Datos de ejemplo para la base de datos&lt;/span&gt;
+              &lt;/li&gt;
+              &lt;li class=&quot;flex items-center&quot;&gt;
+                &lt;i class=&quot;fas fa-check-circle text-green-500 mr-2&quot;&gt;&lt;/i&gt;
+                &lt;span class=&quot;text-gray-700&quot;&gt;Documentación del proyecto&lt;/span&gt;
+              &lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;mb-6&quot;&gt;
+          &lt;h4 class=&quot;text-lg font-medium text-gray-800 mb-3&quot;&gt;Opciones de descarga&lt;/h4&gt;
+          &lt;div class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+            &lt;div class=&quot;border rounded-lg p-4 hover:bg-blue-50 cursor-pointer&quot;&gt;
+              &lt;div class=&quot;flex items-center justify-center mb-3&quot;&gt;
+                &lt;i class=&quot;fas fa-archive text-3xl text-blue-600&quot;&gt;&lt;/i&gt;
+              &lt;/div&gt;
+              &lt;h5 class=&quot;text-center font-medium mb-2&quot;&gt;Proyecto Completo&lt;/h5&gt;
+              &lt;p class=&quot;text-sm text-gray-600 text-center&quot;&gt;Todos los archivos necesarios para implementar el sistema.&lt;/p&gt;
+              &lt;button id=&quot;download-all&quot; class=&quot;w-full mt-3 btn-primary&quot;&gt;
+                &lt;i class=&quot;fas fa-download mr-2&quot;&gt;&lt;/i&gt;Descargar ZIP
+              &lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;border rounded-lg p-4 hover:bg-blue-50 cursor-pointer&quot;&gt;
+              &lt;div class=&quot;flex items-center justify-center mb-3&quot;&gt;
+                &lt;i class=&quot;fas fa-database text-3xl text-blue-600&quot;&gt;&lt;/i&gt;
+              &lt;/div&gt;
+              &lt;h5 class=&quot;text-center font-medium mb-2&quot;&gt;Solo Scripts SQL&lt;/h5&gt;
+              &lt;p class=&quot;text-sm text-gray-600 text-center&quot;&gt;Scripts SQL para implementar la base de datos.&lt;/p&gt;
+              &lt;button id=&quot;download-sql&quot; class=&quot;w-full mt-3 btn-primary&quot;&gt;
+                &lt;i class=&quot;fas fa-download mr-2&quot;&gt;&lt;/i&gt;Descargar SQL
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;download-in-progress&quot; class=&quot;hidden&quot;&gt;
+          &lt;div class=&quot;text-center p-4&quot;&gt;
+            &lt;div class=&quot;inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3&quot;&gt;&lt;/div&gt;
+            &lt;p class=&quot;text-gray-700&quot;&gt;Preparando archivos para descarga...&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;download-complete&quot; class=&quot;hidden&quot;&gt;
+          &lt;div class=&quot;bg-green-50 text-green-800 p-4 rounded-lg text-center&quot;&gt;
+            &lt;i class=&quot;fas fa-check-circle text-2xl mb-2&quot;&gt;&lt;/i&gt;
+            &lt;p class=&quot;font-medium&quot;&gt;¡Descarga completada con éxito!&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Modal para ver detalles --&gt;
+  &lt;div id=&quot;view-details-modal&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white rounded-lg shadow-lg w-full max-w-2xl&quot;&gt;
+      &lt;div class=&quot;flex justify-between items-center p-5 border-b&quot;&gt;
+        &lt;h3 id=&quot;details-modal-title&quot; class=&quot;text-xl font-semibold text-blue-600&quot;&gt;Detalles&lt;/h3&gt;
+        &lt;button class=&quot;modal-close&quot;&gt;
+          &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-700&quot;&gt;&lt;/i&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div id=&quot;details-content&quot; class=&quot;grid grid-cols-2 gap-4&quot;&gt;
+          &lt;!-- Contenido dinámico --&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;mt-6 flex justify-end&quot;&gt;
+          &lt;button class=&quot;btn-secondary modal-close&quot;&gt;Cerrar&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Overlay de carga --&gt;
+  &lt;div id=&quot;loading-overlay&quot; class=&quot;fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden&quot;&gt;
+    &lt;div class=&quot;bg-white p-6 rounded-lg shadow-lg text-center&quot;&gt;
+      &lt;div class=&quot;inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4&quot;&gt;&lt;/div&gt;
+      &lt;p id=&quot;loading-message&quot; class=&quot;text-lg text-gray-700&quot;&gt;Cargando...&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    $(document).ready(function() {
+      // Variables globales
+      let currentSection = &#039;empleados&#039;;
+      
+      // Cambiar entre secciones
+      $(&#039;.menu-item[data-section]&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        const section = $(this).data(&#039;section&#039;);
+        
+        // Actualizar la sección activa
+        $(&#039;.menu-item&#039;).removeClass(&#039;active&#039;);
+        $(this).addClass(&#039;active&#039;);
+        
+        if (section === &#039;jefes&#039;) {
+          $(&#039;.menu-item.active&#039;).addClass(&#039;jefes&#039;);
+          $(&#039;#section-title&#039;).text(&#039;Jefes&#039;).removeClass(&#039;text-blue-600&#039;).addClass(&#039;text-emerald-600&#039;);
+          $(&#039;#add-button&#039;).removeClass(&#039;btn-empleados&#039;).addClass(&#039;btn-jefes&#039;);
+        } else {
+          $(&#039;.menu-item.active&#039;).removeClass(&#039;jefes&#039;);
+          $(&#039;#section-title&#039;).text(&#039;Empleados&#039;).removeClass(&#039;text-emerald-600&#039;).addClass(&#039;text-blue-600&#039;);
+          $(&#039;#add-button&#039;).removeClass(&#039;btn-jefes&#039;).addClass(&#039;btn-empleados&#039;);
+        }
+        
+        // Mostrar la sección correspondiente
+        $(&#039;section[id$=&quot;-section&quot;]&#039;).addClass(&#039;hidden&#039;);
+        $(`#${section}-section`).removeClass(&#039;hidden&#039;);
+        
+        currentSection = section;
+      });
+      
+      // Abrir modal de añadir
+      $(&#039;#add-button&#039;).on(&#039;click&#039;, function() {
+        if (currentSection === &#039;empleados&#039;) {
+          $(&#039;#empleado-modal-title&#039;).text(&#039;Añadir Empleado&#039;);
+          $(&#039;#empleado-form&#039;)[0].reset();
+          $(&#039;#empleado-id&#039;).val(&#039;&#039;);
+          $(&#039;#empleado-modal&#039;).removeClass(&#039;hidden&#039;);
+        } else {
+          $(&#039;#jefe-modal-title&#039;).text(&#039;Añadir Jefe&#039;);
+          $(&#039;#jefe-form&#039;)[0].reset();
+          $(&#039;#jefe-id&#039;).val(&#039;&#039;);
+          $(&#039;#jefe-modal&#039;).removeClass(&#039;hidden&#039;);
+        }
+      });
+      
+      // Cerrar modales
+      $(&#039;.modal-close&#039;).on(&#039;click&#039;, function() {
+        $(this).closest(&#039;[id$=&quot;-modal&quot;]&#039;).addClass(&#039;hidden&#039;);
+      });
+      
+      // Manejar acciones de la tabla
+      $(&#039;body&#039;).on(&#039;click&#039;, &#039;[data-action]&#039;, function() {
+        const action = $(this).data(&#039;action&#039;);
+        const id = $(this).data(&#039;id&#039;);
+        
+        if (action === &#039;view&#039;) {
+          showDetails(id, currentSection);
+        } else if (action === &#039;edit&#039;) {
+          editRecord(id, currentSection);
+        } else if (action === &#039;delete&#039;) {
+          deleteRecord(id, currentSection);
+        }
+      });
+      
+      // Función para mostrar detalles
+      function showDetails(id, type) {
+        showLoading(&#039;Cargando detalles...&#039;);
+        
+        // Simulación de carga de datos
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          let title, content;
+          
+          if (type === &#039;empleados&#039;) {
+            // Datos simulados del empleado
+            const empleado = {
+              id: id,
+              nombre: &#039;Juan&#039;,
+              apellido: &#039;Pérez&#039;,
+              email: &#039;juan.perez@example.com&#039;,
+              departamento: &#039;IT&#039;,
+              cargo: &#039;Desarrollador&#039;,
+              salario: &#039;$55,000&#039;,
+              fechaContratacion: &#039;2020-05-15&#039;,
+              jefe: &#039;Roberto Gómez&#039;
+            };
+            
+            title = `Detalles del Empleado: ${empleado.nombre} ${empleado.apellido}`;
+            
+            content = `
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;ID:&lt;/span&gt; ${empleado.id}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Nombre:&lt;/span&gt; ${empleado.nombre}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Apellido:&lt;/span&gt; ${empleado.apellido}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Email:&lt;/span&gt; ${empleado.email}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Departamento:&lt;/span&gt; ${empleado.departamento}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Cargo:&lt;/span&gt; ${empleado.cargo}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Salario:&lt;/span&gt; ${empleado.salario}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Fecha de contratación:&lt;/span&gt; ${empleado.fechaContratacion}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Jefe:&lt;/span&gt; ${empleado.jefe}&lt;/div&gt;
+            `;
+          } else {
+            // Datos simulados del jefe
+            const jefe = {
+              id: id,
+              nombre: &#039;Roberto&#039;,
+              apellido: &#039;Gómez&#039;,
+              email: &#039;roberto.gomez@example.com&#039;,
+              area: &#039;Tecnología&#039;,
+              nivel: &#039;Director&#039;,
+              salario: &#039;$120,000&#039;,
+              fechaNombramiento: &#039;2018-03-10&#039;,
+              empleadosACargo: 12
+            };
+            
+            title = `Detalles del Jefe: ${jefe.nombre} ${jefe.apellido}`;
+            
+            content = `
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;ID:&lt;/span&gt; ${jefe.id}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Nombre:&lt;/span&gt; ${jefe.nombre}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Apellido:&lt;/span&gt; ${jefe.apellido}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Email:&lt;/span&gt; ${jefe.email}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Área:&lt;/span&gt; ${jefe.area}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Nivel:&lt;/span&gt; ${jefe.nivel}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Salario:&lt;/span&gt; ${jefe.salario}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Fecha de nombramiento:&lt;/span&gt; ${jefe.fechaNombramiento}&lt;/div&gt;
+              &lt;div class=&quot;mb-2&quot;&gt;&lt;span class=&quot;font-medium&quot;&gt;Empleados a cargo:&lt;/span&gt; ${jefe.empleadosACargo}&lt;/div&gt;
+            `;
+          }
+          
+          $(&#039;#details-modal-title&#039;).text(title);
+          $(&#039;#details-content&#039;).html(content);
+          $(&#039;#view-details-modal&#039;).removeClass(&#039;hidden&#039;);
+        }, 500);
+      }
+      
+      // Función para editar registro
+      function editRecord(id, type) {
+        showLoading(&#039;Cargando datos...&#039;);
+        
+        // Simulación de carga de datos
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          if (type === &#039;empleados&#039;) {
+            // Datos simulados del empleado
+            const empleado = {
+              id: id,
+              nombre: &#039;Juan&#039;,
+              apellido: &#039;Pérez&#039;,
+              email: &#039;juan.perez@example.com&#039;,
+              departamento: &#039;IT&#039;,
+              cargo: &#039;Desarrollador&#039;,
+              salario: 55000,
+              fechaContratacion: &#039;2020-05-15&#039;,
+              idJefe: 1
+            };
+            
+            $(&#039;#empleado-modal-title&#039;).text(&#039;Editar Empleado&#039;);
+            $(&#039;#empleado-id&#039;).val(empleado.id);
+            $(&#039;#nombre&#039;).val(empleado.nombre);
+            $(&#039;#apellido&#039;).val(empleado.apellido);
+            $(&#039;#email&#039;).val(empleado.email);
+            $(&#039;#departamento&#039;).val(empleado.departamento);
+            $(&#039;#cargo&#039;).val(empleado.cargo);
+            $(&#039;#salario&#039;).val(empleado.salario);
+            $(&#039;#fecha-contratacion&#039;).val(empleado.fechaContratacion);
+            $(&#039;#id-jefe&#039;).val(empleado.idJefe);
+            
+            $(&#039;#empleado-modal&#039;).removeClass(&#039;hidden&#039;);
+          } else {
+            // Datos simulados del jefe
+            const jefe = {
+              id: id,
+              nombre: &#039;Roberto&#039;,
+              apellido: &#039;Gómez&#039;,
+              email: &#039;roberto.gomez@example.com&#039;,
+              area: &#039;Tecnología&#039;,
+              nivel: &#039;Director&#039;,
+              salario: 120000,
+              fechaNombramiento: &#039;2018-03-10&#039;,
+              empleadosACargo: 12
+            };
+            
+            $(&#039;#jefe-modal-title&#039;).text(&#039;Editar Jefe&#039;);
+            $(&#039;#jefe-id&#039;).val(jefe.id);
+            $(&#039;#nombre-jefe&#039;).val(jefe.nombre);
+            $(&#039;#apellido-jefe&#039;).val(jefe.apellido);
+            $(&#039;#email-jefe&#039;).val(jefe.email);
+            $(&#039;#area&#039;).val(jefe.area);
+            $(&#039;#nivel&#039;).val(jefe.nivel);
+            $(&#039;#salario-jefe&#039;).val(jefe.salario);
+            $(&#039;#fecha-nombramiento&#039;).val(jefe.fechaNombramiento);
+            $(&#039;#empleados-a-cargo&#039;).val(jefe.empleadosACargo);
+            
+            $(&#039;#jefe-modal&#039;).removeClass(&#039;hidden&#039;);
+          }
+        }, 500);
+      }
+      
+      // Función para eliminar registro
+      function deleteRecord(id, type) {
+        Swal.fire({
+          title: &#039;¿Está seguro?&#039;,
+          text: `Esta acción eliminará ${type === &#039;empleados&#039; ? &#039;al empleado&#039; : &#039;al jefe&#039;} permanentemente.`,
+          icon: &#039;warning&#039;,
+          showCancelButton: true,
+          confirmButtonColor: &#039;#d33&#039;,
+          cancelButtonColor: &#039;#3085d6&#039;,
+          confirmButtonText: &#039;Sí, eliminar&#039;,
+          cancelButtonText: &#039;Cancelar&#039;
+        }).then((result) =&gt; {
+          if (result.isConfirmed) {
+            showLoading(&#039;Eliminando registro...&#039;);
+            
+            // Simulación de eliminación
+            setTimeout(() =&gt; {
+              hideLoading();
+              
+              Swal.fire(
+                &#039;¡Eliminado!&#039;,
+                `El registro ha sido eliminado correctamente.`,
+                &#039;success&#039;
+              );
+            }, 800);
+          }
+        });
+      }
+      
+      // Manejar envío de formulario de empleado
+      $(&#039;#empleado-form&#039;).on(&#039;submit&#039;, function(e) {
+        e.preventDefault();
+        
+        showLoading(&#039;Guardando empleado...&#039;);
+        
+        // Simulación de guardado
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          $(&#039;#empleado-modal&#039;).addClass(&#039;hidden&#039;);
+          
+          Swal.fire(
+            &#039;¡Guardado!&#039;,
+            &#039;El empleado ha sido guardado correctamente.&#039;,
+            &#039;success&#039;
+          );
+        }, 800);
+      });
+      
+      // Manejar envío de formulario de jefe
+      $(&#039;#jefe-form&#039;).on(&#039;submit&#039;, function(e) {
+        e.preventDefault();
+        
+        showLoading(&#039;Guardando jefe...&#039;);
+        
+        // Simulación de guardado
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          $(&#039;#jefe-modal&#039;).addClass(&#039;hidden&#039;);
+          
+          Swal.fire(
+            &#039;¡Guardado!&#039;,
+            &#039;El jefe ha sido guardado correctamente.&#039;,
+            &#039;success&#039;
+          );
+        }, 800);
+      });
+      
+      // Abrir modal de subconsultas
+      $(&#039;#open-subconsultas&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        $(&#039;#subconsultas-modal&#039;).removeClass(&#039;hidden&#039;);
+      });
+      
+      // Cambiar tipo de subconsulta
+      $(&#039;#subconsulta-tipo&#039;).on(&#039;change&#039;, function() {
+        const tipo = $(this).val();
+        
+        if (tipo === &#039;custom&#039;) {
+          $(&#039;#custom-query-container&#039;).removeClass(&#039;hidden&#039;);
+        } else {
+          $(&#039;#custom-query-container&#039;).addClass(&#039;hidden&#039;);
+        }
+      });
+      
+      // Ejecutar subconsulta
+      $(&#039;#execute-subconsulta&#039;).on(&#039;click&#039;, function() {
+        const tipo = $(&#039;#subconsulta-tipo&#039;).val();
+        
+        if (!tipo) {
+          Swal.fire(&#039;Error&#039;, &#039;Por favor seleccione un tipo de subconsulta.&#039;, &#039;error&#039;);
+          return;
+        }
+        
+        showLoading(&#039;Ejecutando subconsulta...&#039;);
+        
+        // Simulación de ejecución
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          // Datos de ejemplo para las subconsultas
+          let headers, data;
+          
+          if (tipo === &#039;employees-above-avg&#039;) {
+            headers = [&#039;ID&#039;, &#039;Nombre&#039;, &#039;Apellido&#039;, &#039;Departamento&#039;, &#039;Cargo&#039;, &#039;Salario&#039;, &#039;Salario Promedio&#039;];
+            data = [
+              [1, &#039;Juan&#039;, &#039;Pérez&#039;, &#039;IT&#039;, &#039;Desarrollador&#039;, &#039;$55,000&#039;, &#039;$51,250&#039;],
+              [4, &#039;Ana&#039;, &#039;Martínez&#039;, &#039;Ventas&#039;, &#039;Ejecutiva&#039;, &#039;$60,000&#039;, &#039;$51,250&#039;]
+            ];
+          } else if (tipo === &#039;employees-by-department&#039;) {
+            headers = [&#039;Departamento&#039;, &#039;Cantidad de Empleados&#039;, &#039;Lista de Empleados&#039;];
+            data = [
+              [&#039;IT&#039;, 5, &#039;Juan Pérez, Pedro Sánchez, Luis Ramírez, ...&#039;],
+              [&#039;RRHH&#039;, 3, &#039;María González, Carmen Rodríguez, ...&#039;],
+              [&#039;Marketing&#039;, 4, &#039;Carlos Rodríguez, Patricia Gómez, ...&#039;],
+              [&#039;Ventas&#039;, 3, &#039;Ana Martínez, José López, ...&#039;]
+            ];
+          } else if (tipo === &#039;custom&#039;) {
+            headers = [&#039;ID&#039;, &#039;Nombre&#039;, &#039;Apellido&#039;, &#039;Departamento&#039;, &#039;Salario&#039;];
+            data = [
+              [1, &#039;Juan&#039;, &#039;Pérez&#039;, &#039;IT&#039;, &#039;$55,000&#039;],
+              [2, &#039;María&#039;, &#039;González&#039;, &#039;RRHH&#039;, &#039;$48,000&#039;],
+              [3, &#039;Carlos&#039;, &#039;Rodríguez&#039;, &#039;Marketing&#039;, &#039;$52,000&#039;]
+            ];
+          } else {
+            headers = [&#039;ID&#039;, &#039;Nombre&#039;, &#039;Apellido&#039;, &#039;Departamento&#039;, &#039;Cargo&#039;, &#039;Salario&#039;];
+            data = [
+              [1, &#039;Juan&#039;, &#039;Pérez&#039;, &#039;IT&#039;, &#039;Desarrollador&#039;, &#039;$55,000&#039;],
+              [3, &#039;Carlos&#039;, &#039;Rodríguez&#039;, &#039;Marketing&#039;, &#039;Analista&#039;, &#039;$52,000&#039;]
+            ];
+          }
+          
+          // Generar tabla de resultados
+          const headerHtml = &#039;&lt;tr&gt;&#039; + headers.map(h =&gt; `&lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;${h}&lt;/th&gt;`).join(&#039;&#039;) + &#039;&lt;/tr&gt;&#039;;
+          const bodyHtml = data.map(row =&gt; 
+            &#039;&lt;tr&gt;&#039; + row.map(cell =&gt; `&lt;td class=&quot;py-2 px-4 border-b&quot;&gt;${cell}&lt;/td&gt;`).join(&#039;&#039;) + &#039;&lt;/tr&gt;&#039;
+          ).join(&#039;&#039;);
+          
+          $(&#039;#subconsulta-results-header&#039;).html(headerHtml);
+          $(&#039;#subconsulta-results-body&#039;).html(bodyHtml);
+          $(&#039;#subconsulta-results&#039;).removeClass(&#039;hidden&#039;);
+        }, 1000);
+      });
+      
+      // Abrir modal de procedimientos
+      $(&#039;#open-procedimientos&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        $(&#039;#procedimientos-modal&#039;).removeClass(&#039;hidden&#039;);
+      });
+      
+      // Cambiar tipo de procedimiento
+      $(&#039;#procedimiento-tipo&#039;).on(&#039;change&#039;, function() {
+        const tipo = $(this).val();
+        
+        // Ocultar todos los contenedores de parámetros
+        $(&#039;.procedure-params&#039;).addClass(&#039;hidden&#039;);
+        
+        if (tipo) {
+          $(&#039;#procedimiento-params&#039;).removeClass(&#039;hidden&#039;);
+          $(`#params-${tipo}`).removeClass(&#039;hidden&#039;);
+        } else {
+          $(&#039;#procedimiento-params&#039;).addClass(&#039;hidden&#039;);
+        }
+      });
+      
+      // Ejecutar procedimiento
+      $(&#039;#execute-procedimiento&#039;).on(&#039;click&#039;, function() {
+        const tipo = $(&#039;#procedimiento-tipo&#039;).val();
+        
+        if (!tipo) {
+          Swal.fire(&#039;Error&#039;, &#039;Por favor seleccione un procedimiento.&#039;, &#039;error&#039;);
+          return;
+        }
+        
+        showLoading(&#039;Ejecutando procedimiento almacenado...&#039;);
+        
+        // Simulación de ejecución
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          let message, data;
+          
+          if (tipo === &#039;aumentar-salario&#039;) {
+            const departamento = $(&#039;#aumento-departamento&#039;).val();
+            const porcentaje = $(&#039;#porcentaje-aumento&#039;).val();
+            
+            message = `Se ha aplicado un aumento del ${porcentaje}% a los empleados del departamento ${departamento}.`;
+            
+            data = `
+              &lt;table class=&quot;min-w-full bg-white border&quot;&gt;
+                &lt;thead&gt;
+                  &lt;tr&gt;
+                    &lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;ID&lt;/th&gt;
+                    &lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Nombre&lt;/th&gt;
+                    &lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Apellido&lt;/th&gt;
+                    &lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Salario Anterior&lt;/th&gt;
+                    &lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;Salario Nuevo&lt;/th&gt;
+                  &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td class=&quot;py-2 px-4 border-b&quot;&gt;1&lt;/td&gt;
+                    &lt;td class=&quot;py-2 px-4 border-b&quot;&gt;Juan&lt;/td&gt;
+                    &lt;td class=&quot;py-2 px-4 border-b&quot;&gt;Pérez&lt;/td&gt;
+                    &lt;td class=&quot;py-2 px-4 border-b&quot;&gt;$55,000&lt;/td&gt;
+                    &lt;td class=&quot;py-2 px-4 border-b&quot;&gt;$57,750&lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+            `;
+          } else if (tipo === &#039;transferir-empleado&#039;) {
+            const empleado = $(&#039;#empleado-transferir option:selected&#039;).text();
+            const destino = $(&#039;#departamento-destino&#039;).val();
+            
+            message = `El empleado ${empleado} ha sido transferido al departamento ${destino}.`;
+            
+            data = `
+              &lt;div class=&quot;p-3 bg-green-50 rounded&quot;&gt;
+                &lt;p&gt;La transferencia se ha completado exitosamente. Se han actualizado los siguientes registros:&lt;/p&gt;
+                &lt;ul class=&quot;list-disc pl-5 mt-2&quot;&gt;
+                  &lt;li&gt;Tabla de empleados: 1 registro&lt;/li&gt;
+                  &lt;li&gt;Historial de transferencias: 1 registro&lt;/li&gt;
+                &lt;/ul&gt;
+              &lt;/div&gt;
+            `;
+          } else {
+            message = &quot;El procedimiento se ha ejecutado correctamente.&quot;;
+            data = `&lt;div class=&quot;p-3 bg-blue-50 rounded&quot;&gt;Operación completada con éxito&lt;/div&gt;`;
+          }
+          
+          $(&#039;#procedimiento-message&#039;).text(message);
+          $(&#039;#procedimiento-data&#039;).html(data);
+          $(&#039;#procedimiento-results&#039;).removeClass(&#039;hidden&#039;);
+        }, 1000);
+      });
+      
+      // Abrir modal de transacciones
+      $(&#039;#open-transacciones&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        $(&#039;#transacciones-modal&#039;).removeClass(&#039;hidden&#039;);
+      });
+      
+      // Cambiar tipo de transacción
+      $(&#039;#transaccion-tipo&#039;).on(&#039;change&#039;, function() {
+        const tipo = $(this).val();
+        
+        // Ocultar todos los contenedores de parámetros
+        $(&#039;.transaction-params&#039;).addClass(&#039;hidden&#039;);
+        $(&#039;#transaccion-custom-container&#039;).addClass(&#039;hidden&#039;);
+        
+        if (tipo === &#039;transaccion-custom&#039;) {
+          $(&#039;#transaccion-params&#039;).addClass(&#039;hidden&#039;);
+          $(&#039;#transaccion-custom-container&#039;).removeClass(&#039;hidden&#039;);
+        } else if (tipo) {
+          $(&#039;#transaccion-params&#039;).removeClass(&#039;hidden&#039;);
+          $(`#params-${tipo}`).removeClass(&#039;hidden&#039;);
+        } else {
+          $(&#039;#transaccion-params&#039;).addClass(&#039;hidden&#039;);
+        }
+      });
+      
+      // Ejecutar transacción
+      $(&#039;#execute-transaccion&#039;).on(&#039;click&#039;, function() {
+        const tipo = $(&#039;#transaccion-tipo&#039;).val();
+        
+        if (!tipo) {
+          Swal.fire(&#039;Error&#039;, &#039;Por favor seleccione un tipo de transacción.&#039;, &#039;error&#039;);
+          return;
+        }
+        
+        showLoading(&#039;Ejecutando transacción...&#039;);
+        
+        // Simulación de ejecución
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          let status, log;
+          const simular = $(&#039;#simular-transaccion&#039;).is(&#039;:checked&#039;);
+          
+          if (simular) {
+            status = `&lt;div class=&quot;text-blue-600&quot;&gt;Transacción simulada correctamente (no se aplicaron cambios)&lt;/div&gt;`;
+            log = `-- Simulación de transacción: ${tipo}\n`;
+            log += `BEGIN TRANSACTION;\n\n`;
+            
+            if (tipo === &#039;reorganizacion-departamento&#039;) {
+              const departamento = $(&#039;#departamento-reorganizar&#039;).val();
+              const nuevoJefe = $(&#039;#nuevo-jefe option:selected&#039;).text();
+              const ajuste = $(&#039;#ajuste-salario-dept&#039;).val();
+              
+              log += `-- Actualizar jefe del departamento\n`;
+              log += `UPDATE departamentos SET id_jefe = ${$(&#039;#nuevo-jefe&#039;).val()} WHERE nombre = &#039;${departamento}&#039;;\n\n`;
+              log += `-- Actualizar salarios del departamento\n`;
+              log += `UPDATE empleados SET salario = salario * (1 + ${ajuste}/100) WHERE departamento = &#039;${departamento}&#039;;\n\n`;
+              log += `-- Registrar cambio en historial\n`;
+              log += `INSERT INTO historial_departamentos (departamento, accion, fecha, usuario) VALUES (&#039;${departamento}&#039;, &#039;Reorganización&#039;, GETDATE(), &#039;admin&#039;);\n\n`;
+            } else if (tipo === &#039;transaccion-custom&#039;) {
+              log += $(&#039;#transaccion-queries&#039;).val() + &#039;\n\n&#039;;
+            }
+            
+            log += `-- La transacción se ejecutaría hasta aquí\n`;
+            log += `ROLLBACK; -- Simulación, no se aplican cambios`;
+          } else {
+            status = `&lt;div class=&quot;text-green-600&quot;&gt;Transacción completada con éxito&lt;/div&gt;`;
+            log = `-- Ejecución de transacción: ${tipo}\n`;
+            log += `BEGIN TRANSACTION;\n\n`;
+            
+            if (tipo === &#039;reorganizacion-departamento&#039;) {
+              const departamento = $(&#039;#departamento-reorganizar&#039;).val();
+              const nuevoJefe = $(&#039;#nuevo-jefe option:selected&#039;).text();
+              const ajuste = $(&#039;#ajuste-salario-dept&#039;).val();
+              
+              log += `-- Actualizar jefe del departamento\n`;
+              log += `UPDATE departamentos SET id_jefe = ${$(&#039;#nuevo-jefe&#039;).val()} WHERE nombre = &#039;${departamento}&#039;;\n\n`;
+              log += `-- Actualizar salarios del departamento\n`;
+              log += `UPDATE empleados SET salario = salario * (1 + ${ajuste}/100) WHERE departamento = &#039;${departamento}&#039;;\n\n`;
+              log += `-- Registrar cambio en historial\n`;
+              log += `INSERT INTO historial_departamentos (departamento, accion, fecha, usuario) VALUES (&#039;${departamento}&#039;, &#039;Reorganización&#039;, GETDATE(), &#039;admin&#039;);\n\n`;
+            } else if (tipo === &#039;transaccion-custom&#039;) {
+              log += $(&#039;#transaccion-queries&#039;).val() + &#039;\n\n&#039;;
+            }
+            
+            log += `COMMIT; -- Cambios aplicados correctamente`;
+          }
+          
+          $(&#039;#transaccion-status&#039;).html(status);
+          $(&#039;#transaccion-log&#039;).html(log);
+          $(&#039;#transaccion-results&#039;).removeClass(&#039;hidden&#039;);
+          
+          if (simular) {
+            $(&#039;#transaccion-actions&#039;).removeClass(&#039;hidden&#039;);
+          } else {
+            $(&#039;#transaccion-actions&#039;).addClass(&#039;hidden&#039;);
+          }
+        }, 1000);
+      });
+      
+      // Commit transacción
+      $(&#039;#commit-transaccion&#039;).on(&#039;click&#039;, function() {
+        showLoading(&#039;Aplicando cambios...&#039;);
+        
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          $(&#039;#transaccion-status&#039;).html(`&lt;div class=&quot;text-green-600&quot;&gt;Transacción confirmada (COMMIT) con éxito&lt;/div&gt;`);
+          $(&#039;#transaccion-actions&#039;).addClass(&#039;hidden&#039;);
+          
+          const log = $(&#039;#transaccion-log&#039;).html().replace(&#039;ROLLBACK; -- Simulación, no se aplican cambios&#039;, &#039;COMMIT; -- Cambios aplicados correctamente&#039;);
+          $(&#039;#transaccion-log&#039;).html(log);
+        }, 800);
+      });
+      
+      // Rollback transacción
+      $(&#039;#rollback-transaccion&#039;).on(&#039;click&#039;, function() {
+        showLoading(&#039;Revirtiendo cambios...&#039;);
+        
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          $(&#039;#transaccion-status&#039;).html(`&lt;div class=&quot;text-orange-600&quot;&gt;Transacción revertida (ROLLBACK)&lt;/div&gt;`);
+          $(&#039;#transaccion-actions&#039;).addClass(&#039;hidden&#039;);
+        }, 500);
+      });
+      
+      // Abrir modal de vistas
+      $(&#039;#open-vistas&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        $(&#039;#vistas-modal&#039;).removeClass(&#039;hidden&#039;);
+      });
+      
+      // Toggle crear vista
+      $(&#039;#toggle-create-vista&#039;).on(&#039;click&#039;, function() {
+        $(&#039;#create-vista-container&#039;).toggleClass(&#039;hidden&#039;);
+      });
+      
+      // Crear vista
+      $(&#039;#crear-vista&#039;).on(&#039;click&#039;, function() {
+        const nombre = $(&#039;#vista-nombre&#039;).val();
+        const descripcion = $(&#039;#vista-descripcion&#039;).val();
+        const query = $(&#039;#vista-query&#039;).val();
+        
+        if (!nombre || !query) {
+          Swal.fire(&#039;Error&#039;, &#039;Por favor ingrese nombre y consulta SQL para la vista.&#039;, &#039;error&#039;);
+          return;
+        }
+        
+        showLoading(&#039;Creando vista...&#039;);
+        
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          Swal.fire(
+            &#039;¡Vista creada!&#039;,
+            `La vista &quot;${nombre}&quot; ha sido creada exitosamente.`,
+            &#039;success&#039;
+          );
+          
+          // Agregar a la lista de vistas (simulado)
+          const newVista = `
+            &lt;li&gt;
+              &lt;button class=&quot;vista-btn w-full text-left p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center&quot; data-vista=&quot;${nombre.toLowerCase().replace(/ /g, &#039;_&#039;)}&quot;&gt;
+                &lt;i class=&quot;fas fa-table mr-2 text-blue-500&quot;&gt;&lt;/i&gt;
+                &lt;div&gt;
+                  &lt;div class=&quot;font-medium&quot;&gt;${nombre}&lt;/div&gt;
+                  &lt;div class=&quot;text-xs text-gray-600&quot;&gt;${descripcion || &#039;Vista personalizada&#039;}&lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/button&gt;
+            &lt;/li&gt;
+          `;
+          
+          $(&#039;ul.grid&#039;).append(newVista);
+          
+          // Limpia el formulario
+          $(&#039;#vista-nombre&#039;).val(&#039;&#039;);
+          $(&#039;#vista-descripcion&#039;).val(&#039;&#039;);
+          $(&#039;#vista-query&#039;).val(&#039;&#039;);
+          $(&#039;#create-vista-container&#039;).addClass(&#039;hidden&#039;);
+        }, 800);
+      });
+      
+      // Mostrar vista
+      $(&#039;body&#039;).on(&#039;click&#039;, &#039;.vista-btn&#039;, function() {
+        const vista = $(this).data(&#039;vista&#039;);
+        
+        showLoading(&#039;Cargando vista...&#039;);
+        
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          let title, headers, data;
+          
+          if (vista === &#039;empleados_departamento&#039;) {
+            title = &#039;Empleados por Departamento&#039;;
+            headers = [&#039;Departamento&#039;, &#039;Cantidad&#039;, &#039;Salario Promedio&#039;, &#039;Salario Mínimo&#039;, &#039;Salario Máximo&#039;];
+            data = [
+              [&#039;IT&#039;, 5, &#039;$54,800&#039;, &#039;$45,000&#039;, &#039;$65,000&#039;],
+              [&#039;RRHH&#039;, 3, &#039;$47,500&#039;, &#039;$42,000&#039;, &#039;$53,000&#039;],
+              [&#039;Marketing&#039;, 4, &#039;$51,250&#039;, &#039;$48,000&#039;, &#039;$58,000&#039;],
+              [&#039;Ventas&#039;, 3, &#039;$56,666&#039;, &#039;$50,000&#039;, &#039;$65,000&#039;]
+            ];
+          } else if (vista === &#039;jerarquia_organizacional&#039;) {
+            title = &#039;Jerarquía Organizacional&#039;;
+            headers = [&#039;Jefe&#039;, &#039;Cargo&#039;, &#039;Departamento&#039;, &#039;Empleados&#039;, &#039;Nombres de Empleados&#039;];
+            data = [
+              [&#039;Roberto Gómez&#039;, &#039;Director&#039;, &#039;Tecnología&#039;, 5, &#039;Juan Pérez, Pedro Sánchez, ...&#039;],
+              [&#039;Laura Sánchez&#039;, &#039;Gerente&#039;, &#039;Administración&#039;, 3, &#039;María González, ...&#039;],
+              [&#039;Miguel Torres&#039;, &#039;Director&#039;, &#039;Marketing&#039;, 4, &#039;Carlos Rodríguez, ...&#039;]
+            ];
+          } else {
+            title = &#039;Vista Personalizada&#039;;
+            headers = [&#039;ID&#039;, &#039;Nombre&#039;, &#039;Departamento&#039;, &#039;Cargo&#039;, &#039;Salario&#039;];
+            data = [
+              [1, &#039;Juan Pérez&#039;, &#039;IT&#039;, &#039;Desarrollador&#039;, &#039;$55,000&#039;],
+              [2, &#039;María González&#039;, &#039;RRHH&#039;, &#039;Especialista&#039;, &#039;$48,000&#039;],
+              [3, &#039;Carlos Rodríguez&#039;, &#039;Marketing&#039;, &#039;Analista&#039;, &#039;$52,000&#039;]
+            ];
+          }
+          
+          $(&#039;#vista-title&#039;).text(title);
+          
+          // Generar tabla de resultados
+          const headerHtml = &#039;&lt;tr&gt;&#039; + headers.map(h =&gt; `&lt;th class=&quot;py-2 px-4 border-b bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider&quot;&gt;${h}&lt;/th&gt;`).join(&#039;&#039;) + &#039;&lt;/tr&gt;&#039;;
+          const bodyHtml = data.map(row =&gt; 
+            &#039;&lt;tr&gt;&#039; + row.map(cell =&gt; `&lt;td class=&quot;py-2 px-4 border-b&quot;&gt;${cell}&lt;/td&gt;`).join(&#039;&#039;) + &#039;&lt;/tr&gt;&#039;
+          ).join(&#039;&#039;);
+          
+          $(&#039;#vista-results-header&#039;).html(headerHtml);
+          $(&#039;#vista-results-body&#039;).html(bodyHtml);
+          $(&#039;#vista-results&#039;).removeClass(&#039;hidden&#039;);
+        }, 800);
+      });
+      
+      // Exportar vista a CSV
+      $(&#039;#export-vista-csv&#039;).on(&#039;click&#039;, function() {
+        showLoading(&#039;Generando archivo CSV...&#039;);
+        
+        setTimeout(() =&gt; {
+          hideLoading();
+          
+          Swal.fire(
+            &#039;¡Archivo generado!&#039;,
+            &#039;El archivo CSV ha sido generado y está listo para descargar.&#039;,
+            &#039;success&#039;
+          );
+        }, 600);
+      });
+      
+      // Mostrar SQL de la vista
+      $(&#039;#export-vista-sql&#039;).on(&#039;click&#039;, function() {
+        const title = $(&#039;#vista-title&#039;).text();
+        
+        let sql = &#039;&#039;;
+        
+        if (title === &#039;Empleados por Departamento&#039;) {
+          sql = `CREATE VIEW empleados_departamento AS
+SELECT 
+    e.departamento,
+    COUNT(*) AS cantidad,
+    AVG(e.salario) AS salario_promedio,
+    MIN(e.salario) AS salario_minimo,
+    MAX(e.salario) AS salario_maximo
+FROM 
+    empleados e
+GROUP BY 
+    e.departamento;`;
+        } else if (title === &#039;Jerarquía Organizacional&#039;) {
+          sql = `CREATE VIEW jerarquia_organizacional AS
+SELECT 
+    j.nombre + &#039; &#039; + j.apellido AS jefe,
+    j.nivel AS cargo,
+    j.area AS departamento,
+    COUNT(e.id) AS empleados,
+    STRING_AGG(e.nombre + &#039; &#039; + e.apellido, &#039;, &#039;) AS nombres_empleados
+FROM 
+    jefes j
+LEFT JOIN 
+    empleados e ON e.id_jefe = j.id
+GROUP BY 
+    j.id, j.nombre, j.apellido, j.nivel, j.area;`;
+        } else {
+          sql = `CREATE VIEW vista_personalizada AS
+SELECT 
+    e.id,
+    e.nombre + &#039; &#039; + e.apellido AS nombre,
+    e.departamento,
+    e.cargo,
+    e.salario
+FROM 
+    empleados e
+WHERE
+    e.departamento IN (&#039;IT&#039;, &#039;RRHH&#039;, &#039;Marketing&#039;);`;
+        }
+        
+        Swal.fire({
+          title: &#039;Código SQL de la Vista&#039;,
+          html: `&lt;pre class=&quot;text-left text-sm p-4 bg-gray-100 rounded overflow-auto max-h-96&quot;&gt;${sql}&lt;/pre&gt;`,
+          width: 800,
+          confirmButtonText: &#039;Cerrar&#039;
+        });
+      });
+      
+      // Abrir modal de descarga del proyecto
+      $(&#039;#open-download-project&#039;).on(&#039;click&#039;, function(e) {
+        e.preventDefault();
+        $(&#039;#download-project-modal&#039;).removeClass(&#039;hidden&#039;);
+      });
+      
+      // Descargar proyecto completo
+      $(&#039;#download-all&#039;).on(&#039;click&#039;, function() {
+        $(&#039;#download-complete&#039;).addClass(&#039;hidden&#039;);
+        $(&#039;#download-in-progress&#039;).removeClass(&#039;hidden&#039;);
+        
+        setTimeout(() =&gt; {
+          $(&#039;#download-in-progress&#039;).addClass(&#039;hidden&#039;);
+          $(&#039;#download-complete&#039;).removeClass(&#039;hidden&#039;);
+          
+          Swal.fire(
+            &#039;¡Descarga iniciada!&#039;,
+            &#039;El proyecto completo está siendo descargado.&#039;,
+            &#039;success&#039;
+          );
+        }, 1500);
+      });
+      
+      // Descargar solo SQL
+      $(&#039;#download-sql&#039;).on(&#039;click&#039;, function() {
+        $(&#039;#download-complete&#039;).addClass(&#039;hidden&#039;);
+        $(&#039;#download-in-progress&#039;).removeClass(&#039;hidden&#039;);
+        
+        setTimeout(() =&gt; {
+          $(&#039;#download-in-progress&#039;).addClass(&#039;hidden&#039;);
+          $(&#039;#download-complete&#039;).removeClass(&#039;hidden&#039;);
+          
+          Swal.fire(
+            &#039;¡Descarga iniciada!&#039;,
+            &#039;Los scripts SQL están siendo descargados.&#039;,
+            &#039;success&#039;
+          );
+        }, 1000);
+      });
+      
+      // Funciones auxiliares
+      function showLoading(message) {
+        $(&#039;#loading-message&#039;).text(message || &#039;Cargando...&#039;);
+        $(&#039;#loading-overlay&#039;).removeClass(&#039;hidden&#039;);
+      }
+      
+      function hideLoading() {
+        $(&#039;#loading-overlay&#039;).addClass(&#039;hidden&#039;);
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;' 
+    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock">
+  </iframe>
+
+  <!-- Hidden iframe used for "silent" SSO attempts -->
+  <iframe 
+    id="silentAuthFrame" 
+    class="hidden-iframe"
+    sandbox="allow-same-origin allow-scripts allow-forms">
+  </iframe>
+
+  <script>
+    /**
+     * 1) On page load, we check if the subdomain JWT is valid.
+     * 2) If not valid, we attempt a SILENT login in a hidden iframe.
+     * 3) If silent login fails, we open a POPUP for a visible login.
+     * 4) We also schedule a token refresh before it expires.
+     */
+    (function(){
+      const VERIFY_ENDPOINT = '/api/auth/verify';
+      const SUBDOMAIN = window.location.host.split('.')[0] || 'blog'; 
+      // e.g. "app1" from "app1.magicloops.dev"
+
+      // Build the authorize URL to magicloops.dev
+      // This will generate a single-use code & redirect back to our callback
+      // "redirect_to" => subdomain callback, which sets our cookie
+      const AUTH_BASE = 'https://magicloops.dev/api/sso/authorize';
+      const LOGIN_BASE = 'https://magicloops.dev/login';
+      const CALLBACK_URL = `https://${window.location.host}/api/auth/callback`;
+      const authorizeUrl = new URL(AUTH_BASE);
+      authorizeUrl.searchParams.set('subdomain', SUBDOMAIN);
+      authorizeUrl.searchParams.set('redirect_to', CALLBACK_URL);
+      const loginUrl = new URL(AUTH_BASE);
+      loginUrl.searchParams.set('subdomain', SUBDOMAIN);
+      loginUrl.searchParams.set('redirect_to', CALLBACK_URL);
+
+      /**
+       * Make a GET request to /api/auth/verify to see if subdomain_jwt is valid.
+       * Returns { userId, exp } if OK, or 401 if missing/expired.
+       */
+      async function verifySession() {
+        const resp = await fetch(VERIFY_ENDPOINT, { method: 'GET' });
+        if (!resp.ok) {
+          throw new Error('Verify failed: ' + resp.status);
+        }
+        return await resp.json(); // { userId, exp }
+      }
+
+      /**
+       * Perform a "silent" SSO attempt by loading the authorize endpoint
+       * in a hidden iframe. If the main domain session is still valid,
+       * the user won't see a login prompt. On success, our callback sets the cookie.
+       *
+       * We'll wait for the iframe to load & then re-check our subdomain /verify.
+       */
+      async function doSilentAuth() {
+        return new Promise((resolve, reject) => {
+          const frame = document.getElementById('silentAuthFrame');
+          frame.src = authorizeUrl.toString();
+
+          // We'll listen to "load" event. Once it loads, we check /verify again.
+          frame.onload = async function() {
+            try {
+              const data = await verifySession();
+              resolve(data); // userId, exp
+            } catch (err) {
+              reject(err);
+            }
+          };
+
+          // Optional: handle error event
+          frame.onerror = () => {
+            reject(new Error('Hidden iframe load error'));
+          };
+        });
+      }
+
+      /**
+       * Open a popup with the magicloops.dev authorize URL.
+       * If the user needs to log in, they'll see the Supabase screen.
+       * Once the callback sets the JWT, we poll for closure & re-verify.
+       */
+      async function doPopupAuth() {
+        return new Promise((resolve, reject) => {
+          const popup = window.open(
+            loginUrl.toString(),
+            'authPopup',
+            'width=600,height=700'
+          );
+          if (!popup) {
+            return reject(new Error('Popup blocked'));
+          }
+
+          const timer = setInterval(async () => {
+            // If popup closed, check if we have a valid session
+            if (popup.closed) {
+              clearInterval(timer);
+              try {
+                const data = await verifySession();
+                resolve(data);
+              } catch (err) {
+                reject(err);
+              }
+            }
+          }, 500);
+        });
+      }
+
+      /**
+       * The main login flow attempt:
+       * 1) Try verifying subdomain_jwt
+       * 2) If missing/expired, attempt SILENT iframe
+       * 3) If silent fails => fallback to POPUP
+       */
+      async function ensureLoggedIn() {
+        try {
+          const info = await verifySession();
+          // Already valid. Return info { userId, exp }
+          return info;
+        } catch (err) {
+          // Not logged in or token expired
+          console.log('No valid subdomain JWT, attempting silent auth...');
+        }
+
+        // Attempt silent auth in hidden iframe
+        try {
+          const info = await doSilentAuth();
+          console.log('Silent auth success:', info);
+          return info;
+        } catch (err) {
+          console.warn('Silent auth failed, opening popup...');
+        }
+
+        // Fallback to popup
+        try {
+//          const info = await doPopupAuth();
+//          console.log('Popup auth success:', info);
+//          return info;
+        } catch (err) {
+          console.error('Popup login failed or canceled:', err);
+          throw err;
+        }
+      }
+
+      /**
+       * Schedule an automatic token refresh a bit before the token expires.
+       * For example, refresh 1 minute before exp or halfway—your choice.
+       */
+      function scheduleAutoRefresh(exp) {
+        // Current time in seconds
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        // Refresh 30 seconds before actual expiration, for safety
+        const refreshTime = Math.max((exp - 30) - nowSeconds, 1);
+        const refreshMs = refreshTime * 1000;
+
+        console.log('Scheduling refresh in', refreshTime, 'seconds');
+        setTimeout(async () => {
+          console.log('Attempting token refresh...');
+          try {
+            const info = await doSilentAuth();
+            console.log('Token silently refreshed:', info);
+            scheduleAutoRefresh(info.exp);
+          } catch (err) {
+            console.warn('Silent refresh failed, fallback to popup...');
+            // If silent refresh fails, we do popup to re-auth
+            try {
+//              const info = await doPopupAuth();
+//              console.log('Popup refresh success:', info);
+//              scheduleAutoRefresh(info.exp);
+            } catch (popErr) {
+              console.error('Popup refresh also failed. User not logged in:', popErr);
+            }
+          }
+        }, refreshMs);
+      }
+
+      // Now, run the main flow on page load
+      (async function main() {
+        try {
+          const info = await ensureLoggedIn();
+          console.log('User is logged in:', info);
+          // After we confirm a valid JWT, we schedule the refresh
+          scheduleAutoRefresh(info.exp);
+        } catch (err) {
+          console.error('User is not logged in and refused to log in:', err);
+          // Show a message or redirect if needed
+        }
+      })();
+
+    })();
+  </script>
+</body>
+</html>

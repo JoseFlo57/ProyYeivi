@@ -1,0 +1,1700 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Magic Loops App</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100vh;
+    }
+    .hidden-iframe {
+      display: none; /* keep hidden for silent refresh */
+      width: 0; height: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 
+    The main application content is in an <iframe> 
+    with user-generated HTML (appData.html).
+  -->
+  <iframe 
+    srcdoc='&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;es&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Sistema de Gestión de Empleados&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css&quot;&gt;
+    &lt;link href=&quot;https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.6.4.min.js&quot;&gt;&lt;/script&gt;
+    &lt;style&gt;
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        body.modal-active {
+            overflow-x: hidden;
+            overflow-y: visible !important;
+        }
+        .empleados-theme {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #60a5fa;
+            --accent-color: #93c5fd;
+        }
+        .jefes-theme {
+            --primary-color: #10b981;
+            --primary-hover: #059669;
+            --secondary-color: #34d399;
+            --accent-color: #6ee7b7;
+        }
+        
+        /* Loading animation */
+        .loader {
+            border-top-color: var(--primary-color);
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg-gray-100 empleados-theme&quot;&gt;
+    &lt;div class=&quot;flex h-screen&quot;&gt;
+        &lt;!-- Sidebar --&gt;
+        &lt;div class=&quot;w-64 bg-gray-800 text-white&quot;&gt;
+            &lt;div class=&quot;p-4&quot;&gt;
+                &lt;h1 class=&quot;text-2xl font-bold mb-6&quot;&gt;Sistema de Gestión&lt;/h1&gt;
+                &lt;ul&gt;
+                    &lt;li class=&quot;mb-3&quot;&gt;
+                        &lt;button id=&quot;empleados-btn&quot; class=&quot;flex items-center w-full py-2 px-4 rounded transition-colors bg-blue-600 hover:bg-blue-700 text-white&quot;&gt;
+                            &lt;i class=&quot;fas fa-users mr-2&quot;&gt;&lt;/i&gt; Empleados
+                        &lt;/button&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;
+                        &lt;button id=&quot;jefes-btn&quot; class=&quot;flex items-center w-full py-2 px-4 rounded transition-colors bg-gray-700 hover:bg-green-700 text-white&quot;&gt;
+                            &lt;i class=&quot;fas fa-user-tie mr-2&quot;&gt;&lt;/i&gt; Jefes
+                        &lt;/button&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+            
+            &lt;div class=&quot;p-4 border-t border-gray-700&quot;&gt;
+                &lt;h2 class=&quot;text-lg font-semibold mb-3&quot;&gt;Operaciones&lt;/h2&gt;
+                &lt;ul&gt;
+                    &lt;li class=&quot;mb-2&quot;&gt;
+                        &lt;button id=&quot;reportes-btn&quot; class=&quot;flex items-center w-full py-2 px-4 rounded hover:bg-gray-700 transition-colors&quot;&gt;
+                            &lt;i class=&quot;fas fa-chart-bar mr-2&quot;&gt;&lt;/i&gt; Reportes
+                        &lt;/button&gt;
+                    &lt;/li&gt;
+                    &lt;li class=&quot;mb-2&quot;&gt;
+                        &lt;button id=&quot;auditorias-btn&quot; class=&quot;flex items-center w-full py-2 px-4 rounded hover:bg-gray-700 transition-colors&quot;&gt;
+                            &lt;i class=&quot;fas fa-clipboard-list mr-2&quot;&gt;&lt;/i&gt; Auditorías
+                        &lt;/button&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;
+                        &lt;button id=&quot;procedimientos-btn&quot; class=&quot;flex items-center w-full py-2 px-4 rounded hover:bg-gray-700 transition-colors&quot;&gt;
+                            &lt;i class=&quot;fas fa-cogs mr-2&quot;&gt;&lt;/i&gt; Procedimientos
+                        &lt;/button&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;!-- Main Content --&gt;
+        &lt;div class=&quot;flex-1 flex flex-col overflow-hidden&quot;&gt;
+            &lt;!-- Top Navigation --&gt;
+            &lt;header class=&quot;bg-white shadow-sm&quot;&gt;
+                &lt;div class=&quot;flex justify-between items-center py-4 px-6&quot;&gt;
+                    &lt;div class=&quot;flex items-center&quot;&gt;
+                        &lt;h2 id=&quot;section-title&quot; class=&quot;text-lg font-medium text-blue-600&quot;&gt;Gestión de Empleados&lt;/h2&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;flex items-center&quot;&gt;
+                        &lt;div class=&quot;relative mr-4&quot;&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;search-input&quot; placeholder=&quot;Buscar...&quot; class=&quot;py-2 pl-10 pr-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent&quot;&gt;
+                            &lt;i class=&quot;fas fa-search absolute left-3 top-3 text-gray-400&quot;&gt;&lt;/i&gt;
+                        &lt;/div&gt;
+                        &lt;button id=&quot;add-record-btn&quot; class=&quot;px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center&quot;&gt;
+                            &lt;i class=&quot;fas fa-plus mr-2&quot;&gt;&lt;/i&gt; Agregar
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/header&gt;
+
+            &lt;!-- Filters Section --&gt;
+            &lt;div class=&quot;bg-white border-b p-4&quot;&gt;
+                &lt;div class=&quot;flex flex-wrap items-center gap-4&quot;&gt;
+                    &lt;div&gt;
+                        &lt;label for=&quot;filter-department&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Departamento&lt;/label&gt;
+                        &lt;select id=&quot;filter-department&quot; class=&quot;py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500&quot;&gt;
+                            &lt;option value=&quot;&quot;&gt;Todos&lt;/option&gt;
+                            &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                            &lt;option value=&quot;TI&quot;&gt;TI&lt;/option&gt;
+                            &lt;option value=&quot;Recursos Humanos&quot;&gt;Recursos Humanos&lt;/option&gt;
+                            &lt;option value=&quot;Finanzas&quot;&gt;Finanzas&lt;/option&gt;
+                            &lt;option value=&quot;Operaciones&quot;&gt;Operaciones&lt;/option&gt;
+                            &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label for=&quot;filter-supervisor&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Supervisor&lt;/label&gt;
+                        &lt;select id=&quot;filter-supervisor&quot; class=&quot;py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500&quot;&gt;
+                            &lt;option value=&quot;&quot;&gt;Todos&lt;/option&gt;
+                            &lt;option value=&quot;Sí&quot;&gt;Sí&lt;/option&gt;
+                            &lt;option value=&quot;No&quot;&gt;No&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label for=&quot;filter-date&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Fecha contratación&lt;/label&gt;
+                        &lt;input type=&quot;date&quot; id=&quot;filter-date&quot; class=&quot;py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500&quot;&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label for=&quot;sort-by&quot; class=&quot;block text-sm font-medium text-gray-700 mb-1&quot;&gt;Ordenar por&lt;/label&gt;
+                        &lt;select id=&quot;sort-by&quot; class=&quot;py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500&quot;&gt;
+                            &lt;option value=&quot;nombres&quot;&gt;Nombres&lt;/option&gt;
+                            &lt;option value=&quot;apellidos&quot;&gt;Apellidos&lt;/option&gt;
+                            &lt;option value=&quot;departamento&quot;&gt;Departamento&lt;/option&gt;
+                            &lt;option value=&quot;fecha_contratacion&quot;&gt;Fecha de contratación&lt;/option&gt;
+                            &lt;option value=&quot;salario&quot;&gt;Salario&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;ml-auto&quot;&gt;
+                        &lt;button id=&quot;clear-filters-btn&quot; class=&quot;mt-6 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50&quot;&gt;
+                            Limpiar filtros
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Content Area --&gt;
+            &lt;main class=&quot;flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6&quot;&gt;
+                &lt;!-- Stats Cards --&gt;
+                &lt;div class=&quot;grid grid-cols-1 md:grid-cols-4 gap-6 mb-8&quot;&gt;
+                    &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+                        &lt;div class=&quot;flex justify-between items-center&quot;&gt;
+                            &lt;div&gt;
+                                &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Total Empleados&lt;/h3&gt;
+                                &lt;div class=&quot;mt-1&quot;&gt;
+                                    &lt;div id=&quot;total-empleados&quot; class=&quot;text-2xl font-semibold text-gray-900&quot;&gt;0&lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&quot;p-3 rounded-full bg-blue-100 text-blue-600&quot;&gt;
+                                &lt;i class=&quot;fas fa-users&quot;&gt;&lt;/i&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+                        &lt;div class=&quot;flex justify-between items-center&quot;&gt;
+                            &lt;div&gt;
+                                &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Promedio Salarial&lt;/h3&gt;
+                                &lt;div class=&quot;mt-1&quot;&gt;
+                                    &lt;div id=&quot;promedio-salario&quot; class=&quot;text-2xl font-semibold text-gray-900&quot;&gt;$0&lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&quot;p-3 rounded-full bg-green-100 text-green-600&quot;&gt;
+                                &lt;i class=&quot;fas fa-dollar-sign&quot;&gt;&lt;/i&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+                        &lt;div class=&quot;flex justify-between items-center&quot;&gt;
+                            &lt;div&gt;
+                                &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Supervisores&lt;/h3&gt;
+                                &lt;div class=&quot;mt-1&quot;&gt;
+                                    &lt;div id=&quot;total-supervisores&quot; class=&quot;text-2xl font-semibold text-gray-900&quot;&gt;0&lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&quot;p-3 rounded-full bg-purple-100 text-purple-600&quot;&gt;
+                                &lt;i class=&quot;fas fa-user-tie&quot;&gt;&lt;/i&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;bg-white rounded-lg shadow p-6&quot;&gt;
+                        &lt;div class=&quot;flex justify-between items-center&quot;&gt;
+                            &lt;div&gt;
+                                &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Contratados este mes&lt;/h3&gt;
+                                &lt;div class=&quot;mt-1&quot;&gt;
+                                    &lt;div id=&quot;contratados-mes&quot; class=&quot;text-2xl font-semibold text-gray-900&quot;&gt;0&lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&quot;p-3 rounded-full bg-yellow-100 text-yellow-600&quot;&gt;
+                                &lt;i class=&quot;fas fa-calendar-plus&quot;&gt;&lt;/i&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;!-- Table Section --&gt;
+                &lt;div class=&quot;bg-white shadow rounded-lg mb-8&quot;&gt;
+                    &lt;div class=&quot;px-6 py-5 border-b border-gray-200&quot;&gt;
+                        &lt;h3 class=&quot;text-lg leading-6 font-medium text-gray-900&quot;&gt;
+                            Lista de Empleados
+                        &lt;/h3&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;overflow-x-auto&quot;&gt;
+                        &lt;table class=&quot;min-w-full divide-y divide-gray-200&quot;&gt;
+                            &lt;thead class=&quot;bg-gray-50&quot;&gt;
+                                &lt;tr&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;ID&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Nombre&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Email&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Departamento&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Cargo&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Fecha Contratación&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Supervisor&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Salario&lt;/th&gt;
+                                    &lt;th scope=&quot;col&quot; class=&quot;px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider&quot;&gt;Acciones&lt;/th&gt;
+                                &lt;/tr&gt;
+                            &lt;/thead&gt;
+                            &lt;tbody id=&quot;empleados-table-body&quot; class=&quot;bg-white divide-y divide-gray-200&quot;&gt;
+                                &lt;!-- La tabla se llenará con JavaScript --&gt;
+                            &lt;/tbody&gt;
+                        &lt;/table&gt;
+                    &lt;/div&gt;
+                    &lt;!-- Pagination --&gt;
+                    &lt;div class=&quot;px-6 py-4 border-t border-gray-200 flex items-center justify-between&quot;&gt;
+                        &lt;div&gt;
+                            &lt;p class=&quot;text-sm text-gray-700&quot;&gt;
+                                Mostrando &lt;span id=&quot;pagination-showing&quot;&gt;1-10&lt;/span&gt; de &lt;span id=&quot;pagination-total&quot;&gt;100&lt;/span&gt; resultados
+                            &lt;/p&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&quot;flex-1 flex justify-between sm:justify-end&quot;&gt;
+                            &lt;button id=&quot;prev-page&quot; class=&quot;relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50&quot;&gt;
+                                Anterior
+                            &lt;/button&gt;
+                            &lt;button id=&quot;next-page&quot; class=&quot;ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50&quot;&gt;
+                                Siguiente
+                            &lt;/button&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/main&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Add/Edit Employee Modal --&gt;
+    &lt;div id=&quot;modal-empleado&quot; class=&quot;modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50&quot;&gt;
+        &lt;div class=&quot;modal-overlay absolute w-full h-full bg-gray-900 opacity-50&quot;&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;modal-container bg-white w-11/12 md:max-w-3xl mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-90vh&quot;&gt;
+            
+            &lt;div class=&quot;modal-content py-4 text-left px-6&quot;&gt;
+                &lt;!-- Header --&gt;
+                &lt;div class=&quot;flex justify-between items-center pb-3 border-b&quot;&gt;
+                    &lt;p id=&quot;modal-title&quot; class=&quot;text-xl font-bold&quot;&gt;Agregar Empleado&lt;/p&gt;
+                    &lt;div class=&quot;modal-close cursor-pointer z-50&quot;&gt;
+                        &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-800&quot;&gt;&lt;/i&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Body --&gt;
+                &lt;div class=&quot;mt-4&quot;&gt;
+                    &lt;form id=&quot;empleado-form&quot; class=&quot;grid grid-cols-1 md:grid-cols-2 gap-4&quot;&gt;
+                        &lt;input type=&quot;hidden&quot; id=&quot;empleado-id&quot;&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;nombres&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Nombres&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;nombres&quot; name=&quot;nombres&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;apellidos&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Apellidos&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;apellidos&quot; name=&quot;apellidos&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;fecha_nacimiento&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Fecha de Nacimiento&lt;/label&gt;
+                            &lt;input type=&quot;date&quot; id=&quot;fecha_nacimiento&quot; name=&quot;fecha_nacimiento&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;correo_electronico&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Correo Electrónico&lt;/label&gt;
+                            &lt;input type=&quot;email&quot; id=&quot;correo_electronico&quot; name=&quot;correo_electronico&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-2&quot;&gt;
+                            &lt;label for=&quot;direccion&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Dirección&lt;/label&gt;
+                            &lt;textarea id=&quot;direccion&quot; name=&quot;direccion&quot; rows=&quot;2&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;&lt;/textarea&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;id_empleado&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;ID Empleado&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;id_empleado&quot; name=&quot;id_empleado&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;departamento&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Departamento&lt;/label&gt;
+                            &lt;select id=&quot;departamento&quot; name=&quot;departamento&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;&quot;&gt;Seleccionar...&lt;/option&gt;
+                                &lt;option value=&quot;Ventas&quot;&gt;Ventas&lt;/option&gt;
+                                &lt;option value=&quot;TI&quot;&gt;TI&lt;/option&gt;
+                                &lt;option value=&quot;Recursos Humanos&quot;&gt;Recursos Humanos&lt;/option&gt;
+                                &lt;option value=&quot;Finanzas&quot;&gt;Finanzas&lt;/option&gt;
+                                &lt;option value=&quot;Operaciones&quot;&gt;Operaciones&lt;/option&gt;
+                                &lt;option value=&quot;Marketing&quot;&gt;Marketing&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;salario&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Salario&lt;/label&gt;
+                            &lt;div class=&quot;mt-1 relative rounded-md shadow-sm&quot;&gt;
+                                &lt;div class=&quot;absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none&quot;&gt;
+                                    &lt;span class=&quot;text-gray-500 sm:text-sm&quot;&gt;$&lt;/span&gt;
+                                &lt;/div&gt;
+                                &lt;input type=&quot;number&quot; step=&quot;0.01&quot; id=&quot;salario&quot; name=&quot;salario&quot; required class=&quot;pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;genero&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Género&lt;/label&gt;
+                            &lt;select id=&quot;genero&quot; name=&quot;genero&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;&quot;&gt;Seleccionar...&lt;/option&gt;
+                                &lt;option value=&quot;Masculino&quot;&gt;Masculino&lt;/option&gt;
+                                &lt;option value=&quot;Femenino&quot;&gt;Femenino&lt;/option&gt;
+                                &lt;option value=&quot;Otro&quot;&gt;Otro&lt;/option&gt;
+                                &lt;option value=&quot;Prefiero no decir&quot;&gt;Prefiero no decir&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;telefono&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Teléfono&lt;/label&gt;
+                            &lt;input type=&quot;tel&quot; id=&quot;telefono&quot; name=&quot;telefono&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;ciudad&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Ciudad&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;ciudad&quot; name=&quot;ciudad&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;fecha_contratacion&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Fecha de Contratación&lt;/label&gt;
+                            &lt;input type=&quot;date&quot; id=&quot;fecha_contratacion&quot; name=&quot;fecha_contratacion&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;cargo&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Cargo&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;cargo&quot; name=&quot;cargo&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;supervisor&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Supervisor&lt;/label&gt;
+                            &lt;select id=&quot;supervisor&quot; name=&quot;supervisor&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;&quot;&gt;Seleccionar...&lt;/option&gt;
+                                &lt;option value=&quot;Sí&quot;&gt;Sí&lt;/option&gt;
+                                &lt;option value=&quot;No&quot;&gt;No&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-1&quot;&gt;
+                            &lt;label for=&quot;documentos&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Documentos&lt;/label&gt;
+                            &lt;input type=&quot;file&quot; id=&quot;documentos&quot; name=&quot;documentos&quot; multiple class=&quot;mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-2&quot;&gt;
+                            &lt;label for=&quot;notas_adicionales&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Notas Adicionales&lt;/label&gt;
+                            &lt;textarea id=&quot;notas_adicionales&quot; name=&quot;notas_adicionales&quot; rows=&quot;3&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;&lt;/textarea&gt;
+                        &lt;/div&gt;
+                    &lt;/form&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Footer --&gt;
+                &lt;div class=&quot;flex justify-end pt-2 border-t mt-4&quot;&gt;
+                    &lt;button class=&quot;modal-close px-4 bg-gray-200 p-3 rounded-lg text-gray-800 hover:bg-gray-300 mr-2&quot;&gt;Cancelar&lt;/button&gt;
+                    &lt;button id=&quot;save-empleado&quot; class=&quot;px-4 bg-blue-500 p-3 rounded-lg text-white hover:bg-blue-600&quot;&gt;Guardar&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Reporte Modal --&gt;
+    &lt;div id=&quot;modal-reporte&quot; class=&quot;modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50&quot;&gt;
+        &lt;div class=&quot;modal-overlay absolute w-full h-full bg-gray-900 opacity-50&quot;&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;modal-container bg-white w-11/12 md:max-w-2xl mx-auto rounded shadow-lg z-50 overflow-y-auto&quot;&gt;
+            
+            &lt;div class=&quot;modal-content py-4 text-left px-6&quot;&gt;
+                &lt;!-- Header --&gt;
+                &lt;div class=&quot;flex justify-between items-center pb-3 border-b&quot;&gt;
+                    &lt;p class=&quot;text-xl font-bold&quot;&gt;Generar Reporte&lt;/p&gt;
+                    &lt;div class=&quot;modal-close cursor-pointer z-50&quot;&gt;
+                        &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-800&quot;&gt;&lt;/i&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Body --&gt;
+                &lt;div class=&quot;mt-4&quot;&gt;
+                    &lt;form id=&quot;reporte-form&quot; class=&quot;space-y-4&quot;&gt;
+                        &lt;div&gt;
+                            &lt;label for=&quot;tipo-reporte&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Tipo de Reporte&lt;/label&gt;
+                            &lt;select id=&quot;tipo-reporte&quot; name=&quot;tipo-reporte&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;&quot;&gt;Seleccionar...&lt;/option&gt;
+                                &lt;option value=&quot;salarios&quot;&gt;Salarios por Departamento&lt;/option&gt;
+                                &lt;option value=&quot;contrataciones&quot;&gt;Contrataciones por Periodo&lt;/option&gt;
+                                &lt;option value=&quot;jerarquia&quot;&gt;Estructura Jerárquica&lt;/option&gt;
+                                &lt;option value=&quot;departamentos&quot;&gt;Distribución por Departamentos&lt;/option&gt;
+                                &lt;option value=&quot;demografico&quot;&gt;Análisis Demográfico&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;formato-reporte&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Formato&lt;/label&gt;
+                            &lt;select id=&quot;formato-reporte&quot; name=&quot;formato-reporte&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;pdf&quot;&gt;PDF&lt;/option&gt;
+                                &lt;option value=&quot;excel&quot;&gt;Excel&lt;/option&gt;
+                                &lt;option value=&quot;csv&quot;&gt;CSV&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;fecha-inicio&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Fecha de Inicio&lt;/label&gt;
+                            &lt;input type=&quot;date&quot; id=&quot;fecha-inicio&quot; name=&quot;fecha-inicio&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;fecha-fin&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Fecha de Fin&lt;/label&gt;
+                            &lt;input type=&quot;date&quot; id=&quot;fecha-fin&quot; name=&quot;fecha-fin&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;detalles-adicionales&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Detalles Adicionales&lt;/label&gt;
+                            &lt;textarea id=&quot;detalles-adicionales&quot; name=&quot;detalles-adicionales&quot; rows=&quot;3&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;&lt;/textarea&gt;
+                        &lt;/div&gt;
+                    &lt;/form&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Footer --&gt;
+                &lt;div class=&quot;flex justify-end pt-2 border-t mt-4&quot;&gt;
+                    &lt;button class=&quot;modal-close px-4 bg-gray-200 p-3 rounded-lg text-gray-800 hover:bg-gray-300 mr-2&quot;&gt;Cancelar&lt;/button&gt;
+                    &lt;button id=&quot;generate-report&quot; class=&quot;px-4 bg-blue-500 p-3 rounded-lg text-white hover:bg-blue-600&quot;&gt;Generar Reporte&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Procedimientos Modal --&gt;
+    &lt;div id=&quot;modal-procedimiento&quot; class=&quot;modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50&quot;&gt;
+        &lt;div class=&quot;modal-overlay absolute w-full h-full bg-gray-900 opacity-50&quot;&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;modal-container bg-white w-11/12 md:max-w-2xl mx-auto rounded shadow-lg z-50 overflow-y-auto&quot;&gt;
+            
+            &lt;div class=&quot;modal-content py-4 text-left px-6&quot;&gt;
+                &lt;!-- Header --&gt;
+                &lt;div class=&quot;flex justify-between items-center pb-3 border-b&quot;&gt;
+                    &lt;p class=&quot;text-xl font-bold&quot;&gt;Ejecutar Procedimiento&lt;/p&gt;
+                    &lt;div class=&quot;modal-close cursor-pointer z-50&quot;&gt;
+                        &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-800&quot;&gt;&lt;/i&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Body --&gt;
+                &lt;div class=&quot;mt-4&quot;&gt;
+                    &lt;form id=&quot;procedimiento-form&quot; class=&quot;space-y-4&quot;&gt;
+                        &lt;div&gt;
+                            &lt;label for=&quot;tipo-procedimiento&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Tipo de Procedimiento&lt;/label&gt;
+                            &lt;select id=&quot;tipo-procedimiento&quot; name=&quot;tipo-procedimiento&quot; required class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                                &lt;option value=&quot;&quot;&gt;Seleccionar...&lt;/option&gt;
+                                &lt;option value=&quot;incremento_salario&quot;&gt;Incremento de Salario por Departamento&lt;/option&gt;
+                                &lt;option value=&quot;calcular_bonos&quot;&gt;Calcular Bonos Anuales&lt;/option&gt;
+                                &lt;option value=&quot;actualizar_cargos&quot;&gt;Actualizar Cargos por Antigüedad&lt;/option&gt;
+                                &lt;option value=&quot;asignar_supervisores&quot;&gt;Asignar Supervisores&lt;/option&gt;
+                                &lt;option value=&quot;crear_respaldo&quot;&gt;Crear Respaldo de Datos&lt;/option&gt;
+                            &lt;/select&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;parametro1&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Parámetro 1&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;parametro1&quot; name=&quot;parametro1&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;label for=&quot;parametro2&quot; class=&quot;block text-sm font-medium text-gray-700&quot;&gt;Parámetro 2&lt;/label&gt;
+                            &lt;input type=&quot;text&quot; id=&quot;parametro2&quot; name=&quot;parametro2&quot; class=&quot;mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500&quot;&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;bg-yellow-50 border-l-4 border-yellow-400 p-4&quot;&gt;
+                            &lt;div class=&quot;flex&quot;&gt;
+                                &lt;div class=&quot;flex-shrink-0&quot;&gt;
+                                    &lt;i class=&quot;fas fa-exclamation-triangle text-yellow-400&quot;&gt;&lt;/i&gt;
+                                &lt;/div&gt;
+                                &lt;div class=&quot;ml-3&quot;&gt;
+                                    &lt;p class=&quot;text-sm text-yellow-700&quot;&gt;
+                                        Los procedimientos almacenados pueden modificar grandes cantidades de datos. Asegúrese de entender el impacto antes de ejecutar.
+                                    &lt;/p&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/form&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Footer --&gt;
+                &lt;div class=&quot;flex justify-end pt-2 border-t mt-4&quot;&gt;
+                    &lt;button class=&quot;modal-close px-4 bg-gray-200 p-3 rounded-lg text-gray-800 hover:bg-gray-300 mr-2&quot;&gt;Cancelar&lt;/button&gt;
+                    &lt;button id=&quot;execute-procedure&quot; class=&quot;px-4 bg-blue-500 p-3 rounded-lg text-white hover:bg-blue-600&quot;&gt;Ejecutar&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- View Details Modal --&gt;
+    &lt;div id=&quot;modal-detalles&quot; class=&quot;modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50&quot;&gt;
+        &lt;div class=&quot;modal-overlay absolute w-full h-full bg-gray-900 opacity-50&quot;&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;modal-container bg-white w-11/12 md:max-w-3xl mx-auto rounded shadow-lg z-50 overflow-y-auto&quot;&gt;
+            
+            &lt;div class=&quot;modal-content py-4 text-left px-6&quot;&gt;
+                &lt;!-- Header --&gt;
+                &lt;div class=&quot;flex justify-between items-center pb-3 border-b&quot;&gt;
+                    &lt;p class=&quot;text-xl font-bold&quot;&gt;Detalles del Empleado&lt;/p&gt;
+                    &lt;div class=&quot;modal-close cursor-pointer z-50&quot;&gt;
+                        &lt;i class=&quot;fas fa-times text-gray-500 hover:text-gray-800&quot;&gt;&lt;/i&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Body --&gt;
+                &lt;div class=&quot;mt-4&quot;&gt;
+                    &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-6&quot;&gt;
+                        &lt;div class=&quot;col-span-2 flex justify-center&quot;&gt;
+                            &lt;div class=&quot;inline-block h-28 w-28 rounded-full overflow-hidden bg-gray-100&quot;&gt;
+                                &lt;i class=&quot;fas fa-user text-6xl text-gray-400 flex justify-center h-full items-center&quot;&gt;&lt;/i&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Nombre Completo&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-nombre&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;ID Empleado&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-id-empleado&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Correo Electrónico&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-email&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Teléfono&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-telefono&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Departamento&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-departamento&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Cargo&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-cargo&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Fecha de Nacimiento&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-fecha-nacimiento&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Fecha de Contratación&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-fecha-contratacion&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Salario&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-salario&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Supervisor&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-supervisor&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-2&quot;&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Dirección&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-direccion&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-2&quot;&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Notas Adicionales&lt;/h3&gt;
+                            &lt;p id=&quot;detalle-notas&quot; class=&quot;mt-1 text-gray-900 font-medium&quot;&gt;&lt;/p&gt;
+                        &lt;/div&gt;
+                        
+                        &lt;div class=&quot;col-span-2&quot;&gt;
+                            &lt;h3 class=&quot;text-gray-500 text-sm font-medium&quot;&gt;Documentos&lt;/h3&gt;
+                            &lt;div id=&quot;detalle-documentos&quot; class=&quot;mt-2 space-y-1&quot;&gt;
+                                &lt;div class=&quot;flex items-center space-x-2&quot;&gt;
+                                    &lt;i class=&quot;fas fa-file-pdf text-red-500&quot;&gt;&lt;/i&gt;
+                                    &lt;span&gt;Sin documentos disponibles&lt;/span&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- Footer --&gt;
+                &lt;div class=&quot;flex justify-end pt-2 border-t mt-4&quot;&gt;
+                    &lt;button class=&quot;modal-close px-4 bg-gray-200 p-3 rounded-lg text-gray-800 hover:bg-gray-300&quot;&gt;Cerrar&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Loading Overlay --&gt;
+    &lt;div id=&quot;loading-overlay&quot; class=&quot;hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50&quot;&gt;
+        &lt;div class=&quot;bg-white p-5 rounded-lg flex items-center&quot;&gt;
+            &lt;div class=&quot;loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mr-4&quot;&gt;&lt;/div&gt;
+            &lt;p id=&quot;loading-message&quot; class=&quot;text-gray-800 text-lg font-semibold&quot;&gt;Cargando datos...&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // Mock database for demonstration
+        let empleados = [
+            {
+                id: 1,
+                nombres: &quot;Juan Carlos&quot;,
+                apellidos: &quot;Rodríguez López&quot;,
+                fecha_nacimiento: &quot;1985-06-15&quot;,
+                correo_electronico: &quot;jrodriguez@empresa.com&quot;,
+                direccion: &quot;Calle Principal 123, Ciudad de México&quot;,
+                id_empleado: &quot;EMP001&quot;,
+                departamento: &quot;TI&quot;,
+                salario: 45000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-123-4567&quot;,
+                ciudad: &quot;Ciudad de México&quot;,
+                fecha_contratacion: &quot;2018-03-10&quot;,
+                cargo: &quot;Desarrollador Senior&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especialista en desarrollo backend y bases de datos.&quot;,
+                creado_en: &quot;2018-03-10 09:30:00&quot;,
+                actualizado_en: &quot;2022-05-15 14:20:00&quot;
+            },
+            {
+                id: 2,
+                nombres: &quot;María Elena&quot;,
+                apellidos: &quot;González Martínez&quot;,
+                fecha_nacimiento: &quot;1990-09-22&quot;,
+                correo_electronico: &quot;mgonzalez@empresa.com&quot;,
+                direccion: &quot;Av. Reforma 456, Guadalajara&quot;,
+                id_empleado: &quot;EMP002&quot;,
+                departamento: &quot;Recursos Humanos&quot;,
+                salario: 38000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-987-6543&quot;,
+                ciudad: &quot;Guadalajara&quot;,
+                fecha_contratacion: &quot;2019-07-15&quot;,
+                cargo: &quot;Especialista en Reclutamiento&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Experta en selección de personal técnico.&quot;,
+                creado_en: &quot;2019-07-15 10:15:00&quot;,
+                actualizado_en: &quot;2023-01-10 11:45:00&quot;
+            },
+            {
+                id: 3,
+                nombres: &quot;Roberto&quot;,
+                apellidos: &quot;Fernández Díaz&quot;,
+                fecha_nacimiento: &quot;1978-11-30&quot;,
+                correo_electronico: &quot;rfernandez@empresa.com&quot;,
+                direccion: &quot;Paseo de la Reforma 789, Ciudad de México&quot;,
+                id_empleado: &quot;EMP003&quot;,
+                departamento: &quot;Finanzas&quot;,
+                salario: 65000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-456-7890&quot;,
+                ciudad: &quot;Ciudad de México&quot;,
+                fecha_contratacion: &quot;2015-05-20&quot;,
+                cargo: &quot;Director Financiero&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;MBA por la Universidad Iberoamericana.&quot;,
+                creado_en: &quot;2015-05-20 08:30:00&quot;,
+                actualizado_en: &quot;2022-12-05 16:10:00&quot;
+            },
+            {
+                id: 4,
+                nombres: &quot;Laura Patricia&quot;,
+                apellidos: &quot;Sánchez Torres&quot;,
+                fecha_nacimiento: &quot;1988-04-12&quot;,
+                correo_electronico: &quot;lsanchez@empresa.com&quot;,
+                direccion: &quot;Calle Juárez 234, Monterrey&quot;,
+                id_empleado: &quot;EMP004&quot;,
+                departamento: &quot;Marketing&quot;,
+                salario: 42000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-789-0123&quot;,
+                ciudad: &quot;Monterrey&quot;,
+                fecha_contratacion: &quot;2020-02-10&quot;,
+                cargo: &quot;Coordinadora de Marketing Digital&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especialista en SEO y campañas de redes sociales.&quot;,
+                creado_en: &quot;2020-02-10 13:20:00&quot;,
+                actualizado_en: &quot;2023-03-18 09:40:00&quot;
+            },
+            {
+                id: 5,
+                nombres: &quot;Carlos Alberto&quot;,
+                apellidos: &quot;Martínez Vargas&quot;,
+                fecha_nacimiento: &quot;1982-08-05&quot;,
+                correo_electronico: &quot;cmartinez@empresa.com&quot;,
+                direccion: &quot;Av. Universidad 567, Puebla&quot;,
+                id_empleado: &quot;EMP005&quot;,
+                departamento: &quot;Ventas&quot;,
+                salario: 48000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-234-5678&quot;,
+                ciudad: &quot;Puebla&quot;,
+                fecha_contratacion: &quot;2017-09-01&quot;,
+                cargo: &quot;Gerente de Ventas Regionales&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especializado en el mercado del centro del país.&quot;,
+                creado_en: &quot;2017-09-01 11:10:00&quot;,
+                actualizado_en: &quot;2022-11-20 15:30:00&quot;
+            },
+            {
+                id: 6,
+                nombres: &quot;Ana Sofía&quot;,
+                apellidos: &quot;López Ramírez&quot;,
+                fecha_nacimiento: &quot;1992-03-25&quot;,
+                correo_electronico: &quot;alopez@empresa.com&quot;,
+                direccion: &quot;Calle Hidalgo 890, Ciudad de México&quot;,
+                id_empleado: &quot;EMP006&quot;,
+                departamento: &quot;TI&quot;,
+                salario: 40000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-345-6789&quot;,
+                ciudad: &quot;Ciudad de México&quot;,
+                fecha_contratacion: &quot;2021-01-15&quot;,
+                cargo: &quot;Desarrolladora Frontend&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especialista en React y Vue.js.&quot;,
+                creado_en: &quot;2021-01-15 09:45:00&quot;,
+                actualizado_en: &quot;2023-04-10 10:15:00&quot;
+            },
+            {
+                id: 7,
+                nombres: &quot;Miguel Ángel&quot;,
+                apellidos: &quot;Torres Morales&quot;,
+                fecha_nacimiento: &quot;1976-12-18&quot;,
+                correo_electronico: &quot;mtorres@empresa.com&quot;,
+                direccion: &quot;Av. Revolución 123, Querétaro&quot;,
+                id_empleado: &quot;EMP007&quot;,
+                departamento: &quot;Operaciones&quot;,
+                salario: 55000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-456-7891&quot;,
+                ciudad: &quot;Querétaro&quot;,
+                fecha_contratacion: &quot;2014-08-10&quot;,
+                cargo: &quot;Director de Operaciones&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Experiencia en optimización de procesos industriales.&quot;,
+                creado_en: &quot;2014-08-10 08:00:00&quot;,
+                actualizado_en: &quot;2022-10-05 14:50:00&quot;
+            },
+            {
+                id: 8,
+                nombres: &quot;Gabriela&quot;,
+                apellidos: &quot;Hernández Castro&quot;,
+                fecha_nacimiento: &quot;1989-07-07&quot;,
+                correo_electronico: &quot;ghernandez@empresa.com&quot;,
+                direccion: &quot;Calle Morelos 456, Mérida&quot;,
+                id_empleado: &quot;EMP008&quot;,
+                departamento: &quot;Recursos Humanos&quot;,
+                salario: 42000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-567-8901&quot;,
+                ciudad: &quot;Mérida&quot;,
+                fecha_contratacion: &quot;2019-11-05&quot;,
+                cargo: &quot;Gerente de Desarrollo Organizacional&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Maestría en Psicología Organizacional.&quot;,
+                creado_en: &quot;2019-11-05 10:30:00&quot;,
+                actualizado_en: &quot;2023-02-15 13:20:00&quot;
+            },
+            {
+                id: 9,
+                nombres: &quot;Javier&quot;,
+                apellidos: &quot;Ruiz Mendoza&quot;,
+                fecha_nacimiento: &quot;1984-02-14&quot;,
+                correo_electronico: &quot;jruiz@empresa.com&quot;,
+                direccion: &quot;Av. Chapultepec 789, Ciudad de México&quot;,
+                id_empleado: &quot;EMP009&quot;,
+                departamento: &quot;TI&quot;,
+                salario: 50000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-678-9012&quot;,
+                ciudad: &quot;Ciudad de México&quot;,
+                fecha_contratacion: &quot;2016-06-20&quot;,
+                cargo: &quot;Arquitecto de Software&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especialista en arquitecturas Cloud y microservicios.&quot;,
+                creado_en: &quot;2016-06-20 09:15:00&quot;,
+                actualizado_en: &quot;2022-09-10 16:45:00&quot;
+            },
+            {
+                id: 10,
+                nombres: &quot;Daniela&quot;,
+                apellidos: &quot;Ortiz Vega&quot;,
+                fecha_nacimiento: &quot;1993-10-08&quot;,
+                correo_electronico: &quot;dortiz@empresa.com&quot;,
+                direccion: &quot;Calle Insurgentes 234, Monterrey&quot;,
+                id_empleado: &quot;EMP010&quot;,
+                departamento: &quot;Marketing&quot;,
+                salario: 37000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-789-0124&quot;,
+                ciudad: &quot;Monterrey&quot;,
+                fecha_contratacion: &quot;2021-03-15&quot;,
+                cargo: &quot;Especialista en Contenido Digital&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Experiencia en gestión de redes sociales y creación de contenido.&quot;,
+                creado_en: &quot;2021-03-15 11:20:00&quot;,
+                actualizado_en: &quot;2023-05-05 10:30:00&quot;
+            },
+            {
+                id: 11,
+                nombres: &quot;Fernando&quot;,
+                apellidos: &quot;Vargas Soto&quot;,
+                fecha_nacimiento: &quot;1980-05-19&quot;,
+                correo_electronico: &quot;fvargas@empresa.com&quot;,
+                direccion: &quot;Av. Juárez 567, Guadalajara&quot;,
+                id_empleado: &quot;EMP011&quot;,
+                departamento: &quot;Ventas&quot;,
+                salario: 45000.00,
+                genero: &quot;Masculino&quot;,
+                telefono: &quot;555-890-1234&quot;,
+                ciudad: &quot;Guadalajara&quot;,
+                fecha_contratacion: &quot;2017-04-10&quot;,
+                cargo: &quot;Gerente de Cuentas Clave&quot;,
+                supervisor: &quot;Sí&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especializado en atención a clientes corporativos.&quot;,
+                creado_en: &quot;2017-04-10 09:30:00&quot;,
+                actualizado_en: &quot;2022-08-15 14:10:00&quot;
+            },
+            {
+                id: 12,
+                nombres: &quot;Alejandra&quot;,
+                apellidos: &quot;Navarro Ríos&quot;,
+                fecha_nacimiento: &quot;1991-01-30&quot;,
+                correo_electronico: &quot;anavarro@empresa.com&quot;,
+                direccion: &quot;Calle Madero 890, Ciudad de México&quot;,
+                id_empleado: &quot;EMP012&quot;,
+                departamento: &quot;Finanzas&quot;,
+                salario: 48000.00,
+                genero: &quot;Femenino&quot;,
+                telefono: &quot;555-901-2345&quot;,
+                ciudad: &quot;Ciudad de México&quot;,
+                fecha_contratacion: &quot;2020-07-01&quot;,
+                cargo: &quot;Analista Financiero Senior&quot;,
+                supervisor: &quot;No&quot;,
+                documentos: &quot;&quot;,
+                notas_adicionales: &quot;Especialista en análisis de inversiones y proyecciones financieras.&quot;,
+                creado_en: &quot;2020-07-01 10:45:00&quot;,
+                actualizado_en: &quot;2023-01-20 11:30:00&quot;
+            }
+        ];
+
+        // Current section/mode
+        let currentSection = &#039;empleados&#039;; // or &#039;jefes&#039;
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        
+        // DOM ready
+        $(document).ready(function() {
+            // Update statistics
+            updateStatistics();
+            
+            // Load employee data
+            loadEmployees();
+            
+            // Tab switching
+            $(&#039;#empleados-btn&#039;).click(function() {
+                switchToSection(&#039;empleados&#039;);
+            });
+            
+            $(&#039;#jefes-btn&#039;).click(function() {
+                switchToSection(&#039;jefes&#039;);
+            });
+            
+            // Modal open/close events
+            $(&#039;#add-record-btn&#039;).click(function() {
+                openAddEmployeeModal();
+            });
+            
+            $(&#039;#reportes-btn&#039;).click(function() {
+                openModal(&#039;modal-reporte&#039;);
+            });
+            
+            $(&#039;#procedimientos-btn&#039;).click(function() {
+                openModal(&#039;modal-procedimiento&#039;);
+            });
+            
+            $(&#039;.modal-close&#039;).click(function() {
+                closeAllModals();
+            });
+            
+            $(&#039;.modal-overlay&#039;).click(function() {
+                closeAllModals();
+            });
+            
+            // Save employee
+            $(&#039;#save-empleado&#039;).click(function() {
+                saveEmployee();
+            });
+            
+            // Generate report
+            $(&#039;#generate-report&#039;).click(function() {
+                generateReport();
+            });
+            
+            // Execute procedure
+            $(&#039;#execute-procedure&#039;).click(function() {
+                executeProcedure();
+            });
+            
+            // Pagination
+            $(&#039;#prev-page&#039;).click(function() {
+                if (currentPage &gt; 1) {
+                    currentPage--;
+                    loadEmployees();
+                }
+            });
+            
+            $(&#039;#next-page&#039;).click(function() {
+                const totalPages = Math.ceil(getFilteredEmployees().length / itemsPerPage);
+                if (currentPage &lt; totalPages) {
+                    currentPage++;
+                    loadEmployees();
+                }
+            });
+            
+            // Search functionality
+            $(&#039;#search-input&#039;).on(&#039;keyup&#039;, function() {
+                currentPage = 1;
+                loadEmployees();
+            });
+            
+            // Filters
+            $(&#039;#filter-department, #filter-supervisor, #filter-date, #sort-by&#039;).change(function() {
+                currentPage = 1;
+                loadEmployees();
+            });
+            
+            // Clear filters
+            $(&#039;#clear-filters-btn&#039;).click(function() {
+                $(&#039;#filter-department&#039;).val(&#039;&#039;);
+                $(&#039;#filter-supervisor&#039;).val(&#039;&#039;);
+                $(&#039;#filter-date&#039;).val(&#039;&#039;);
+                $(&#039;#sort-by&#039;).val(&#039;nombres&#039;);
+                $(&#039;#search-input&#039;).val(&#039;&#039;);
+                currentPage = 1;
+                loadEmployees();
+            });
+        });
+        
+        // Switch between sections (Empleados/Jefes)
+        function switchToSection(section) {
+            currentSection = section;
+            currentPage = 1;
+            
+            if (section === &#039;empleados&#039;) {
+                $(&#039;#empleados-btn&#039;).removeClass(&#039;bg-gray-700&#039;).addClass(&#039;bg-blue-600 hover:bg-blue-700&#039;);
+                $(&#039;#jefes-btn&#039;).removeClass(&#039;bg-green-700&#039;).addClass(&#039;bg-gray-700 hover:bg-green-700&#039;);
+                $(&#039;#section-title&#039;).text(&#039;Gestión de Empleados&#039;).removeClass(&#039;text-green-600&#039;).addClass(&#039;text-blue-600&#039;);
+                $(&#039;#add-record-btn&#039;).removeClass(&#039;bg-green-600 hover:bg-green-700&#039;).addClass(&#039;bg-blue-600 hover:bg-blue-700&#039;);
+                $(&#039;body&#039;).removeClass(&#039;jefes-theme&#039;).addClass(&#039;empleados-theme&#039;);
+            } else {
+                $(&#039;#jefes-btn&#039;).removeClass(&#039;bg-gray-700&#039;).addClass(&#039;bg-green-600 hover:bg-green-700&#039;);
+                $(&#039;#empleados-btn&#039;).removeClass(&#039;bg-blue-600&#039;).addClass(&#039;bg-gray-700 hover:bg-blue-700&#039;);
+                $(&#039;#section-title&#039;).text(&#039;Gestión de Jefes&#039;).removeClass(&#039;text-blue-600&#039;).addClass(&#039;text-green-600&#039;);
+                $(&#039;#add-record-btn&#039;).removeClass(&#039;bg-blue-600 hover:bg-blue-700&#039;).addClass(&#039;bg-green-600 hover:bg-green-700&#039;);
+                $(&#039;body&#039;).removeClass(&#039;empleados-theme&#039;).addClass(&#039;jefes-theme&#039;);
+            }
+            
+            // Update the UI
+            loadEmployees();
+            updateStatistics();
+        }
+        
+        // Get filtered employees
+        function getFilteredEmployees() {
+            let searchTerm = $(&#039;#search-input&#039;).val().toLowerCase();
+            let department = $(&#039;#filter-department&#039;).val();
+            let supervisor = $(&#039;#filter-supervisor&#039;).val();
+            let date = $(&#039;#filter-date&#039;).val();
+            
+            // Filter only supervisors if in jefes section
+            let filtered = empleados.filter(function(emp) {
+                if (currentSection === &#039;jefes&#039; &amp;&amp; emp.supervisor !== &#039;Sí&#039;) {
+                    return false;
+                }
+                
+                // Apply search term
+                if (searchTerm &amp;&amp; !(
+                    emp.nombres.toLowerCase().includes(searchTerm) ||
+                    emp.apellidos.toLowerCase().includes(searchTerm) ||
+                    emp.correo_electronico.toLowerCase().includes(searchTerm) ||
+                    emp.cargo.toLowerCase().includes(searchTerm) ||
+                    emp.id_empleado.toLowerCase().includes(searchTerm)
+                )) {
+                    return false;
+                }
+                
+                // Apply department filter
+                if (department &amp;&amp; emp.departamento !== department) {
+                    return false;
+                }
+                
+                // Apply supervisor filter
+                if (supervisor &amp;&amp; emp.supervisor !== supervisor) {
+                    return false;
+                }
+                
+                // Apply date filter
+                if (date &amp;&amp; new Date(emp.fecha_contratacion) &gt; new Date(date)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // Sort
+            let sortBy = $(&#039;#sort-by&#039;).val();
+            if (sortBy) {
+                filtered.sort(function(a, b) {
+                    if (sortBy === &#039;salario&#039;) {
+                        return parseFloat(a[sortBy]) - parseFloat(b[sortBy]);
+                    } else if (sortBy === &#039;fecha_contratacion&#039;) {
+                        return new Date(a[sortBy]) - new Date(b[sortBy]);
+                    } else {
+                        return a[sortBy].localeCompare(b[sortBy]);
+                    }
+                });
+            }
+            
+            return filtered;
+        }
+        
+        // Load employees data to the table
+        function loadEmployees() {
+            showLoading(&#039;Cargando datos...&#039;);
+            
+            setTimeout(function() {
+                const filteredEmployees = getFilteredEmployees();
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, filteredEmployees.length);
+                const pageEmployees = filteredEmployees.slice(startIndex, endIndex);
+                
+                // Clear table
+                $(&#039;#empleados-table-body&#039;).empty();
+                
+                // Add employees to table
+                pageEmployees.forEach(function(emp) {
+                    let rowHTML = `
+                        &lt;tr&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900&quot;&gt;${emp.id_empleado}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${emp.nombres} ${emp.apellidos}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${emp.correo_electronico}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${emp.departamento}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${emp.cargo}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;${formatDate(emp.fecha_contratacion)}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;
+                                &lt;span class=&quot;px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${emp.supervisor === &#039;Sí&#039; ? &#039;bg-green-100 text-green-800&#039; : &#039;bg-gray-100 text-gray-800&#039;}&quot;&gt;
+                                    ${emp.supervisor}
+                                &lt;/span&gt;
+                            &lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-sm text-gray-500&quot;&gt;$${formatMoney(emp.salario)}&lt;/td&gt;
+                            &lt;td class=&quot;px-6 py-4 whitespace-nowrap text-right text-sm font-medium&quot;&gt;
+                                &lt;button class=&quot;text-blue-600 hover:text-blue-900 mr-2&quot; onclick=&quot;viewEmployeeDetails(${emp.id})&quot;&gt;
+                                    &lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;
+                                &lt;/button&gt;
+                                &lt;button class=&quot;text-indigo-600 hover:text-indigo-900 mr-2&quot; onclick=&quot;editEmployee(${emp.id})&quot;&gt;
+                                    &lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;
+                                &lt;/button&gt;
+                                &lt;button class=&quot;text-red-600 hover:text-red-900&quot; onclick=&quot;deleteEmployee(${emp.id})&quot;&gt;
+                                    &lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;
+                                &lt;/button&gt;
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    `;
+                    $(&#039;#empleados-table-body&#039;).append(rowHTML);
+                });
+                
+                // Update pagination info
+                $(&#039;#pagination-showing&#039;).text(`${startIndex + 1}-${endIndex}`);
+                $(&#039;#pagination-total&#039;).text(filteredEmployees.length);
+                
+                hideLoading();
+            }, 500);
+        }
+        
+        // Update statistics cards
+        function updateStatistics() {
+            let filteredEmployees = getFilteredEmployees();
+            
+            // Total employees
+            $(&#039;#total-empleados&#039;).text(filteredEmployees.length);
+            
+            // Average salary
+            let totalSalary = filteredEmployees.reduce((sum, emp) =&gt; sum + parseFloat(emp.salario), 0);
+            let avgSalary = filteredEmployees.length &gt; 0 ? totalSalary / filteredEmployees.length : 0;
+            $(&#039;#promedio-salario&#039;).text(&#039;$&#039; + formatMoney(avgSalary));
+            
+            // Total supervisors
+            let supervisors = filteredEmployees.filter(emp =&gt; emp.supervisor === &#039;Sí&#039;).length;
+            $(&#039;#total-supervisores&#039;).text(supervisors);
+            
+            // Hired this month
+            const now = new Date();
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+            
+            let hiredThisMonth = filteredEmployees.filter(emp =&gt; {
+                const hireDate = new Date(emp.fecha_contratacion);
+                return hireDate.getMonth() === thisMonth &amp;&amp; hireDate.getFullYear() === thisYear;
+            }).length;
+            
+            $(&#039;#contratados-mes&#039;).text(hiredThisMonth);
+        }
+        
+        // Open add employee modal
+        function openAddEmployeeModal() {
+            $(&#039;#modal-title&#039;).text(&#039;Agregar Empleado&#039;);
+            $(&#039;#empleado-id&#039;).val(&#039;&#039;);
+            $(&#039;#empleado-form&#039;)[0].reset();
+            
+            // Set default values
+            const today = new Date().toISOString().split(&#039;T&#039;)[0];
+            $(&#039;#fecha_contratacion&#039;).val(today);
+            
+            openModal(&#039;modal-empleado&#039;);
+        }
+        
+        // View employee details
+        function viewEmployeeDetails(id) {
+            showLoading(&#039;Cargando detalles...&#039;);
+            
+            setTimeout(function() {
+                const emp = empleados.find(e =&gt; e.id === id);
+                
+                if (emp) {
+                    // Fill in the details
+                    $(&#039;#detalle-nombre&#039;).text(`${emp.nombres} ${emp.apellidos}`);
+                    $(&#039;#detalle-id-empleado&#039;).text(emp.id_empleado);
+                    $(&#039;#detalle-email&#039;).text(emp.correo_electronico);
+                    $(&#039;#detalle-telefono&#039;).text(emp.telefono || &#039;No disponible&#039;);
+                    $(&#039;#detalle-departamento&#039;).text(emp.departamento);
+                    $(&#039;#detalle-cargo&#039;).text(emp.cargo);
+                    $(&#039;#detalle-fecha-nacimiento&#039;).text(formatDate(emp.fecha_nacimiento));
+                    $(&#039;#detalle-fecha-contratacion&#039;).text(formatDate(emp.fecha_contratacion));
+                    $(&#039;#detalle-salario&#039;).text(&#039;$&#039; + formatMoney(emp.salario));
+                    $(&#039;#detalle-supervisor&#039;).text(emp.supervisor);
+                    $(&#039;#detalle-direccion&#039;).text(emp.direccion || &#039;No disponible&#039;);
+                    $(&#039;#detalle-notas&#039;).text(emp.notas_adicionales || &#039;Sin notas adicionales&#039;);
+                    
+                    // Documentos (mock)
+                    if (emp.documentos) {
+                        $(&#039;#detalle-documentos&#039;).html(&#039;&#039;);
+                        // Aquí se añadirían los documentos reales
+                    } else {
+                        $(&#039;#detalle-documentos&#039;).html(`
+                            &lt;div class=&quot;flex items-center space-x-2&quot;&gt;
+                                &lt;i class=&quot;fas fa-file-pdf text-red-500&quot;&gt;&lt;/i&gt;
+                                &lt;span&gt;Sin documentos disponibles&lt;/span&gt;
+                            &lt;/div&gt;
+                        `);
+                    }
+                    
+                    openModal(&#039;modal-detalles&#039;);
+                } else {
+                    showToast(&#039;error&#039;, &#039;Error&#039;, &#039;No se encontró el empleado&#039;);
+                }
+                
+                hideLoading();
+            }, 500);
+        }
+        
+        // Edit employee
+        function editEmployee(id) {
+            showLoading(&#039;Cargando datos...&#039;);
+            
+            setTimeout(function() {
+                const emp = empleados.find(e =&gt; e.id === id);
+                
+                if (emp) {
+                    $(&#039;#modal-title&#039;).text(&#039;Editar Empleado&#039;);
+                    $(&#039;#empleado-id&#039;).val(emp.id);
+                    
+                    // Fill form with employee data
+                    $(&#039;#nombres&#039;).val(emp.nombres);
+                    $(&#039;#apellidos&#039;).val(emp.apellidos);
+                    $(&#039;#fecha_nacimiento&#039;).val(emp.fecha_nacimiento);
+                    $(&#039;#correo_electronico&#039;).val(emp.correo_electronico);
+                    $(&#039;#direccion&#039;).val(emp.direccion);
+                    $(&#039;#id_empleado&#039;).val(emp.id_empleado);
+                    $(&#039;#departamento&#039;).val(emp.departamento);
+                    $(&#039;#salario&#039;).val(emp.salario);
+                    $(&#039;#genero&#039;).val(emp.genero);
+                    $(&#039;#telefono&#039;).val(emp.telefono);
+                    $(&#039;#ciudad&#039;).val(emp.ciudad);
+                    $(&#039;#fecha_contratacion&#039;).val(emp.fecha_contratacion);
+                    $(&#039;#cargo&#039;).val(emp.cargo);
+                    $(&#039;#supervisor&#039;).val(emp.supervisor);
+                    $(&#039;#notas_adicionales&#039;).val(emp.notas_adicionales);
+                    
+                    openModal(&#039;modal-empleado&#039;);
+                } else {
+                    showToast(&#039;error&#039;, &#039;Error&#039;, &#039;No se encontró el empleado&#039;);
+                }
+                
+                hideLoading();
+            }, 500);
+        }
+        
+        // Save employee (create or update)
+        function saveEmployee() {
+            showLoading(&#039;Guardando datos...&#039;);
+            
+            setTimeout(function() {
+                const id = $(&#039;#empleado-id&#039;).val();
+                
+                // Create employee object from form
+                const empleado = {
+                    nombres: $(&#039;#nombres&#039;).val(),
+                    apellidos: $(&#039;#apellidos&#039;).val(),
+                    fecha_nacimiento: $(&#039;#fecha_nacimiento&#039;).val(),
+                    correo_electronico: $(&#039;#correo_electronico&#039;).val(),
+                    direccion: $(&#039;#direccion&#039;).val(),
+                    id_empleado: $(&#039;#id_empleado&#039;).val(),
+                    departamento: $(&#039;#departamento&#039;).val(),
+                    salario: parseFloat($(&#039;#salario&#039;).val()),
+                    genero: $(&#039;#genero&#039;).val(),
+                    telefono: $(&#039;#telefono&#039;).val(),
+                    ciudad: $(&#039;#ciudad&#039;).val(),
+                    fecha_contratacion: $(&#039;#fecha_contratacion&#039;).val(),
+                    cargo: $(&#039;#cargo&#039;).val(),
+                    supervisor: $(&#039;#supervisor&#039;).val(),
+                    notas_adicionales: $(&#039;#notas_adicionales&#039;).val(),
+                    documentos: &#039;&#039;,
+                    creado_en: new Date().toISOString(),
+                    actualizado_en: new Date().toISOString()
+                };
+                
+                // Validate required fields
+                if (!empleado.nombres || !empleado.apellidos || !empleado.correo_electronico || 
+                    !empleado.id_empleado || !empleado.departamento || !empleado.salario || 
+                    !empleado.genero || !empleado.fecha_contratacion || !empleado.cargo || 
+                    !empleado.supervisor) {
+                    showToast(&#039;error&#039;, &#039;Error&#039;, &#039;Por favor complete todos los campos requeridos&#039;);
+                    hideLoading();
+                    return;
+                }
+                
+                if (id) {
+                    // Update existing employee
+                    empleado.id = parseInt(id);
+                    const index = empleados.findIndex(e =&gt; e.id === parseInt(id));
+                    
+                    if (index !== -1) {
+                        empleados[index] = empleado;
+                        showToast(&#039;success&#039;, &#039;Éxito&#039;, &#039;Empleado actualizado correctamente&#039;);
+                    } else {
+                        showToast(&#039;error&#039;, &#039;Error&#039;, &#039;No se encontró el empleado a actualizar&#039;);
+                    }
+                } else {
+                    // Create new employee
+                    empleado.id = empleados.length &gt; 0 ? Math.max(...empleados.map(e =&gt; e.id)) + 1 : 1;
+                    empleados.push(empleado);
+                    showToast(&#039;success&#039;, &#039;Éxito&#039;, &#039;Empleado agregado correctamente&#039;);
+                }
+                
+                // Close modal, refresh data
+                closeAllModals();
+                loadEmployees();
+                updateStatistics();
+                
+                hideLoading();
+            }, 800);
+        }
+        
+        // Delete employee
+        function deleteEmployee(id) {
+            Swal.fire({
+                title: &#039;¿Estás seguro?&#039;,
+                text: &quot;Esta acción no se puede revertir&quot;,
+                icon: &#039;warning&#039;,
+                showCancelButton: true,
+                confirmButtonColor: &#039;#3085d6&#039;,
+                cancelButtonColor: &#039;#d33&#039;,
+                confirmButtonText: &#039;Sí, eliminar&#039;,
+                cancelButtonText: &#039;Cancelar&#039;
+            }).then((result) =&gt; {
+                if (result.isConfirmed) {
+                    showLoading(&#039;Eliminando empleado...&#039;);
+                    
+                    setTimeout(function() {
+                        const index = empleados.findIndex(e =&gt; e.id === id);
+                        
+                        if (index !== -1) {
+                            empleados.splice(index, 1);
+                            showToast(&#039;success&#039;, &#039;Eliminado&#039;, &#039;El empleado ha sido eliminado&#039;);
+                            loadEmployees();
+                            updateStatistics();
+                        } else {
+                            showToast(&#039;error&#039;, &#039;Error&#039;, &#039;No se encontró el empleado&#039;);
+                        }
+                        
+                        hideLoading();
+                    }, 800);
+                }
+            });
+        }
+        
+        // Generate report
+        function generateReport() {
+            const reportType = $(&#039;#tipo-reporte&#039;).val();
+            
+            if (!reportType) {
+                showToast(&#039;error&#039;, &#039;Error&#039;, &#039;Por favor seleccione un tipo de reporte&#039;);
+                return;
+            }
+            
+            showLoading(&#039;Generando reporte...&#039;);
+            
+            setTimeout(function() {
+                closeAllModals();
+                
+                const format = $(&#039;#formato-reporte&#039;).val();
+                let message = `Reporte de ${reportType} generado en formato ${format}.`;
+                
+                showToast(&#039;success&#039;, &#039;Reporte Generado&#039;, message);
+                
+                // Simulate download
+                Swal.fire({
+                    title: &#039;Reporte listo&#039;,
+                    text: &#039;¿Desea descargar el reporte ahora?&#039;,
+                    icon: &#039;success&#039;,
+                    showCancelButton: true,
+                    confirmButtonColor: &#039;#3085d6&#039;,
+                    cancelButtonColor: &#039;#d33&#039;,
+                    confirmButtonText: &#039;Descargar&#039;,
+                    cancelButtonText: &#039;Más tarde&#039;
+                });
+                
+                hideLoading();
+            }, 1500);
+        }
+        
+        // Execute procedure
+        function executeProcedure() {
+            const procedureType = $(&#039;#tipo-procedimiento&#039;).val();
+            
+            if (!procedureType) {
+                showToast(&#039;error&#039;, &#039;Error&#039;, &#039;Por favor seleccione un tipo de procedimiento&#039;);
+                return;
+            }
+            
+            showLoading(&#039;Ejecutando procedimiento...&#039;);
+            
+            setTimeout(function() {
+                closeAllModals();
+                
+                let message = `Procedimiento ${procedureType} ejecutado correctamente.`;
+                
+                if (procedureType === &#039;incremento_salario&#039;) {
+                    // Mock salary increase for everyone in the department
+                    const departamento = $(&#039;#parametro1&#039;).val() || &#039;TI&#039;;
+                    const aumento = parseFloat($(&#039;#parametro2&#039;).val()) || 5;
+                    
+                    empleados.forEach(emp =&gt; {
+                        if (emp.departamento === departamento) {
+                            emp.salario = emp.salario * (1 + aumento/100);
+                        }
+                    });
+                    
+                    message = `Salario incrementado en ${aumento}% para el departamento ${departamento}.`;
+                }
+                
+                showToast(&#039;success&#039;, &#039;Procedimiento Ejecutado&#039;, message);
+                loadEmployees();
+                updateStatistics();
+                
+                hideLoading();
+            }, 2000);
+        }
+        
+        // Modal utility functions
+        function openModal(modalId) {
+            $(`#${modalId}`).removeClass(&#039;opacity-0 pointer-events-none&#039;);
+            $(&#039;body&#039;).addClass(&#039;modal-active&#039;);
+        }
+        
+        function closeAllModals() {
+            $(&#039;.modal&#039;).addClass(&#039;opacity-0 pointer-events-none&#039;);
+            $(&#039;body&#039;).removeClass(&#039;modal-active&#039;);
+        }
+        
+        // Loading overlay
+        function showLoading(message = &#039;Cargando...&#039;) {
+            $(&#039;#loading-message&#039;).text(message);
+            $(&#039;#loading-overlay&#039;).removeClass(&#039;hidden&#039;);
+        }
+        
+        function hideLoading() {
+            $(&#039;#loading-overlay&#039;).addClass(&#039;hidden&#039;);
+        }
+        
+        // Toast notifications
+        function showToast(icon, title, message) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: &#039;top-end&#039;,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) =&gt; {
+                    toast.addEventListener(&#039;mouseenter&#039;, Swal.stopTimer)
+                    toast.addEventListener(&#039;mouseleave&#039;, Swal.resumeTimer)
+                }
+            });
+            
+            Toast.fire({
+                icon: icon,
+                title: title,
+                text: message
+            });
+        }
+        
+        // Helper functions
+        function formatDate(dateString) {
+            if (!dateString) return &#039;&#039;;
+            const date = new Date(dateString);
+            return date.toLocaleDateString(&#039;es-MX&#039;);
+        }
+        
+        function formatMoney(amount) {
+            return parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, &#039;$&amp;,&#039;);
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;' 
+    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock">
+  </iframe>
+
+  <!-- Hidden iframe used for "silent" SSO attempts -->
+  <iframe 
+    id="silentAuthFrame" 
+    class="hidden-iframe"
+    sandbox="allow-same-origin allow-scripts allow-forms">
+  </iframe>
+
+  <script>
+    /**
+     * 1) On page load, we check if the subdomain JWT is valid.
+     * 2) If not valid, we attempt a SILENT login in a hidden iframe.
+     * 3) If silent login fails, we open a POPUP for a visible login.
+     * 4) We also schedule a token refresh before it expires.
+     */
+    (function(){
+      const VERIFY_ENDPOINT = '/api/auth/verify';
+      const SUBDOMAIN = window.location.host.split('.')[0] || 'blog'; 
+      // e.g. "app1" from "app1.magicloops.dev"
+
+      // Build the authorize URL to magicloops.dev
+      // This will generate a single-use code & redirect back to our callback
+      // "redirect_to" => subdomain callback, which sets our cookie
+      const AUTH_BASE = 'https://magicloops.dev/api/sso/authorize';
+      const LOGIN_BASE = 'https://magicloops.dev/login';
+      const CALLBACK_URL = `https://${window.location.host}/api/auth/callback`;
+      const authorizeUrl = new URL(AUTH_BASE);
+      authorizeUrl.searchParams.set('subdomain', SUBDOMAIN);
+      authorizeUrl.searchParams.set('redirect_to', CALLBACK_URL);
+      const loginUrl = new URL(AUTH_BASE);
+      loginUrl.searchParams.set('subdomain', SUBDOMAIN);
+      loginUrl.searchParams.set('redirect_to', CALLBACK_URL);
+
+      /**
+       * Make a GET request to /api/auth/verify to see if subdomain_jwt is valid.
+       * Returns { userId, exp } if OK, or 401 if missing/expired.
+       */
+      async function verifySession() {
+        const resp = await fetch(VERIFY_ENDPOINT, { method: 'GET' });
+        if (!resp.ok) {
+          throw new Error('Verify failed: ' + resp.status);
+        }
+        return await resp.json(); // { userId, exp }
+      }
+
+      /**
+       * Perform a "silent" SSO attempt by loading the authorize endpoint
+       * in a hidden iframe. If the main domain session is still valid,
+       * the user won't see a login prompt. On success, our callback sets the cookie.
+       *
+       * We'll wait for the iframe to load & then re-check our subdomain /verify.
+       */
+      async function doSilentAuth() {
+        return new Promise((resolve, reject) => {
+          const frame = document.getElementById('silentAuthFrame');
+          frame.src = authorizeUrl.toString();
+
+          // We'll listen to "load" event. Once it loads, we check /verify again.
+          frame.onload = async function() {
+            try {
+              const data = await verifySession();
+              resolve(data); // userId, exp
+            } catch (err) {
+              reject(err);
+            }
+          };
+
+          // Optional: handle error event
+          frame.onerror = () => {
+            reject(new Error('Hidden iframe load error'));
+          };
+        });
+      }
+
+      /**
+       * Open a popup with the magicloops.dev authorize URL.
+       * If the user needs to log in, they'll see the Supabase screen.
+       * Once the callback sets the JWT, we poll for closure & re-verify.
+       */
+      async function doPopupAuth() {
+        return new Promise((resolve, reject) => {
+          const popup = window.open(
+            loginUrl.toString(),
+            'authPopup',
+            'width=600,height=700'
+          );
+          if (!popup) {
+            return reject(new Error('Popup blocked'));
+          }
+
+          const timer = setInterval(async () => {
+            // If popup closed, check if we have a valid session
+            if (popup.closed) {
+              clearInterval(timer);
+              try {
+                const data = await verifySession();
+                resolve(data);
+              } catch (err) {
+                reject(err);
+              }
+            }
+          }, 500);
+        });
+      }
+
+      /**
+       * The main login flow attempt:
+       * 1) Try verifying subdomain_jwt
+       * 2) If missing/expired, attempt SILENT iframe
+       * 3) If silent fails => fallback to POPUP
+       */
+      async function ensureLoggedIn() {
+        try {
+          const info = await verifySession();
+          // Already valid. Return info { userId, exp }
+          return info;
+        } catch (err) {
+          // Not logged in or token expired
+          console.log('No valid subdomain JWT, attempting silent auth...');
+        }
+
+        // Attempt silent auth in hidden iframe
+        try {
+          const info = await doSilentAuth();
+          console.log('Silent auth success:', info);
+          return info;
+        } catch (err) {
+          console.warn('Silent auth failed, opening popup...');
+        }
+
+        // Fallback to popup
+        try {
+//          const info = await doPopupAuth();
+//          console.log('Popup auth success:', info);
+//          return info;
+        } catch (err) {
+          console.error('Popup login failed or canceled:', err);
+          throw err;
+        }
+      }
+
+      /**
+       * Schedule an automatic token refresh a bit before the token expires.
+       * For example, refresh 1 minute before exp or halfway—your choice.
+       */
+      function scheduleAutoRefresh(exp) {
+        // Current time in seconds
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        // Refresh 30 seconds before actual expiration, for safety
+        const refreshTime = Math.max((exp - 30) - nowSeconds, 1);
+        const refreshMs = refreshTime * 1000;
+
+        console.log('Scheduling refresh in', refreshTime, 'seconds');
+        setTimeout(async () => {
+          console.log('Attempting token refresh...');
+          try {
+            const info = await doSilentAuth();
+            console.log('Token silently refreshed:', info);
+            scheduleAutoRefresh(info.exp);
+          } catch (err) {
+            console.warn('Silent refresh failed, fallback to popup...');
+            // If silent refresh fails, we do popup to re-auth
+            try {
+//              const info = await doPopupAuth();
+//              console.log('Popup refresh success:', info);
+//              scheduleAutoRefresh(info.exp);
+            } catch (popErr) {
+              console.error('Popup refresh also failed. User not logged in:', popErr);
+            }
+          }
+        }, refreshMs);
+      }
+
+      // Now, run the main flow on page load
+      (async function main() {
+        try {
+          const info = await ensureLoggedIn();
+          console.log('User is logged in:', info);
+          // After we confirm a valid JWT, we schedule the refresh
+          scheduleAutoRefresh(info.exp);
+        } catch (err) {
+          console.error('User is not logged in and refused to log in:', err);
+          // Show a message or redirect if needed
+        }
+      })();
+
+    })();
+  </script>
+</body>
+</html>
